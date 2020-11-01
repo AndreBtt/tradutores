@@ -15,7 +15,7 @@ tabela.o: estruturas.o
 lex.yy.o: lex.yy.c sintatico.tab.c
 	gcc -c -o lex.yy.o lex.yy.c
 
-lex.yy.c: 
+lex.yy.c:
 	flex tokens.l
 
 sintatico.tab.o: sintatico.tab.c
@@ -25,4 +25,4 @@ sintatico.tab.c:
 	bison sintatico.y --report=all
 
 clean:
-	rm sintatico.tab.c sintatico.tab.h lex.yy.c *.o
+	rm sintatico sintatico.output sintatico.tab.c sintatico.tab.h lex.yy.c *.o

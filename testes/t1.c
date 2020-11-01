@@ -1,3 +1,4 @@
-int main() {
-  float a;
+List <int> main() {
+  int c;
+  Avg(c);
 }

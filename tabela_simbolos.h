@@ -3,7 +3,9 @@
 
 #include "estruturas.h"
 
-void criar_simbolo(Token);
+int criar_simbolo(Token);
+char* buscar_tipo(Nodo*);
+void definir_tipo(int, char*);
 void mostrar_tabela();
 void liberar_tabela();
 Simbolo* buscar_simbolo(char*, int);

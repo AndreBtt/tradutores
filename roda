@@ -1,0 +1,5 @@
+make clean
+
+make
+
+./sintatico < testes/t1.c

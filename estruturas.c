@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "estruturas.h"
 
-char* buscarToken(char *s) {
+char* buscar_token(char *s) {
 	if(strcmp(s, "int") == 0) return "int";
 	if(strcmp(s, "float") == 0) return "float";
 	if(strcmp(s, "writeInt") == 0 || strcmp(s, "writeFloat") == 0) return "write";
@@ -27,4 +27,25 @@ char* buscarToken(char *s) {
 	if(strcmp(s, "<int>") == 0 || strcmp(s, "<float>") == 0) return "List type";
 	if(strcmp(s, "Avg") == 0) return "List operation";
 	return "Identifier";
+}
+
+Pilha* pilha_pop(Pilha *p) {
+	if (p->elemento == NULL) return p;
+	PilhaElemento *aux = p->elemento;
+	p->elemento = p->elemento->proximo;
+	free(aux);
+	return p;
+}
+
+Pilha* pilha_push(Pilha *p, int val) {
+	if (p == NULL) {
+		p = (Pilha*) malloc(sizeof(Pilha));
+		p->elemento = NULL;
+	}
+	PilhaElemento *novoElemento = (PilhaElemento*) malloc(sizeof(PilhaElemento));
+	novoElemento->val = val;
+	novoElemento->proximo = p->elemento;
+	p->elemento = novoElemento;
+
+	return p;
 }

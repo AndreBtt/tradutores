@@ -5,15 +5,18 @@
 #include "estruturas.h"
 
 ListaSimbolo *tabelaSimbolo;
+int id = 0;
 
-void criar_simbolo(Token t) {
+int criar_simbolo(Token t) {
 	Simbolo *simbolo = (Simbolo*) malloc(sizeof(Simbolo));
-	strcpy(simbolo->token, buscarToken(t.lexema));
+	strcpy(simbolo->token, buscar_token(t.lexema));
 	strcpy(simbolo->lexema, t.lexema);
 	simbolo->linha = t.linha;
 	simbolo->coluna = t.coluna;
 	simbolo->proximo = NULL;
+	simbolo->tipo = NULL;
 	simbolo->escopo = t.escopo;
+	simbolo->id = id++;
 
 	if (tabelaSimbolo == NULL) {
 		tabelaSimbolo = (ListaSimbolo*) malloc(sizeof(ListaSimbolo));
@@ -23,6 +26,31 @@ void criar_simbolo(Token t) {
 		while (aux->proximo != NULL) aux = aux->proximo;
 		aux->proximo = simbolo;
 	}
+
+	return simbolo->id;
+}
+
+char* buscar_tipo(Nodo *n) {
+  char *tipo;			
+  if (n->filhos->proximo != NULL) {
+    // novo tipo List <>
+    tipo = malloc(strlen(n->filhos->val->tipo) + strlen(n->filhos->proximo->val->tipo) + 1);
+    strcpy(tipo, n->filhos->val->tipo);
+    strcat(tipo, n->filhos->proximo->val->tipo);
+  } else {
+    // tipo padrão da linguagem
+    tipo = malloc(strlen(n->filhos->val->tipo) + 1);
+    strcpy(tipo, n->filhos->val->tipo);
+  }
+
+  return tipo;
+}
+
+void definir_tipo(int id, char *tipo) {
+	Simbolo *simbolo = tabelaSimbolo->primeiro;
+	while (simbolo->id != id) simbolo = simbolo->proximo;
+	simbolo->tipo = malloc(strlen(tipo) + 1);
+	strcpy(simbolo->tipo, tipo);
 }
 
 Simbolo* buscar_simbolo(char *s, int escopo) {
@@ -38,12 +66,12 @@ Simbolo* buscar_simbolo(char *s, int escopo) {
 
 void mostrar_tabela() {
 	printf("Tabela de Símbolos\n\n");
-	printf(" Linha |       Token       |                 Lexema              |   Escopo\n");
-	printf("------------------------------------------------------------------------------\n");
+	printf(" Linha |       Identificador       |       Token       |                 Lexema              |   Escopo   \n");
+	printf("-----------------------------------------------------------------------------------------------------------\n");
 	if (tabelaSimbolo != NULL) {
 		Simbolo *simbolo = tabelaSimbolo->primeiro;
 		while (simbolo != NULL) {
-			printf("%6d | %17s | %35s | %5d \n", simbolo->linha, simbolo->token, simbolo->lexema, simbolo->escopo);
+			printf("%6d | %25d | %17s | %35s | %5d \n", simbolo->linha, simbolo->id, simbolo->token, simbolo->lexema, simbolo->escopo);
 			simbolo = simbolo->proximo;
 		}
 	}

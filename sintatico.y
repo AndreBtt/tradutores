@@ -10,6 +10,8 @@
 #include "arvore.h"
 extern int yylex();
 Nodo *raiz;
+Pilha *pilhaIdentificadores;
+Pilha *pilhaParamentros;
 }
 
 %union {
@@ -113,7 +115,9 @@ function_declaration:
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da função %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
 		} else {
-			criar_simbolo($2);
+			int id = criar_simbolo($2);
+			char *tipo = buscar_tipo($1);
+			definir_tipo(id, tipo);
 
 			$$ = criar_nodo("function declaration");
 			add_filho($$, $1);
@@ -143,6 +147,7 @@ parameters:
 		add_filho($$, criar_nodo("right parentheses"));
 	}
 	| T_LeftParentheses T_RightParentheses {
+
 		criar_simbolo($1);
 		criar_simbolo($2);
 
@@ -170,9 +175,10 @@ parameter:
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
-		} else {
-			criar_simbolo($2);
 		}
+		char *tipo = buscar_tipo($1);
+		int id = criar_simbolo($2);
+		definir_tipo(id, tipo);
 
 		$$ = criar_nodo("parameter");
 		add_filho($$, $1);
@@ -201,14 +207,14 @@ type_identifier:
 		criar_simbolo($2);
 
 		$$ = criar_nodo("type identifier");
-		add_filho($$, criar_nodo("list"));
-		add_filho($$, criar_nodo("list type"));
+		add_filho($$, criar_nodo($1.lexema));
+		add_filho($$, criar_nodo($2.lexema));
 	} 
 	| T_Type {
 		criar_simbolo($1);
 
 		$$ = criar_nodo("type identifier");
-		add_filho($$, criar_nodo("type"));
+		add_filho($$, criar_nodo($1.lexema));
 	}
 
 statements:
@@ -434,6 +440,15 @@ array_access:
 variables_declaration:
 	type_identifier identifiers_list T_Semicolon {
 		criar_simbolo($3);
+		char *tipo = buscar_tipo($1);
+		int id = 0;
+
+		while (pilhaIdentificadores->elemento != NULL) {
+			// listar ID dos identificadores que estão sendo declarados
+			int id = pilhaIdentificadores->elemento->val;
+			definir_tipo(id, tipo);
+			pilhaIdentificadores = pilha_pop(pilhaIdentificadores);
+		}
 
 		$$ = criar_nodo("variables declaration");
 		add_filho($$, $1);
@@ -446,10 +461,11 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
-		} else {
-			criar_simbolo($1);
-			criar_simbolo($2);
 		}
+		
+		int id = criar_simbolo($1);
+		criar_simbolo($2);
+		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 
 		$$ = criar_nodo("identifiers list");
 		add_filho($$, criar_nodo("identifier"));
@@ -461,51 +477,55 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
-		} else {
-			criar_simbolo($1);
-			criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
-			criar_simbolo($5);
-
-			$$ = criar_nodo("identifiers list");
-			add_filho($$, criar_nodo("identifier"));
-			add_filho($$, criar_nodo("left bracket"));
-			add_filho($$, criar_nodo("integer"));
-			add_filho($$, criar_nodo("right bracket"));
-			add_filho($$, criar_nodo("comma"));
-			add_filho($$, $6);
 		}
+
+		int id = criar_simbolo($1);
+		criar_simbolo($2);
+		criar_simbolo($3);
+		criar_simbolo($4);
+		criar_simbolo($5);
+		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
+
+		$$ = criar_nodo("identifiers list");
+		add_filho($$, criar_nodo("identifier"));
+		add_filho($$, criar_nodo("left bracket"));
+		add_filho($$, criar_nodo("integer"));
+		add_filho($$, criar_nodo("right bracket"));
+		add_filho($$, criar_nodo("comma"));
+		add_filho($$, $6);
 	}
 	| 
 	T_Id T_LeftBracket T_Integer T_RightBracket {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
-		} else {
-			criar_simbolo($1);
-			criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
-
-			$$ = criar_nodo("identifiers list");
-			add_filho($$, criar_nodo("identifier"));
-			add_filho($$, criar_nodo("left bracket"));
-			add_filho($$, criar_nodo("integer"));
-			add_filho($$, criar_nodo("right bracket"));
 		}
+
+		int id = criar_simbolo($1);
+		criar_simbolo($2);
+		criar_simbolo($3);
+		criar_simbolo($4);
+		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
+
+		$$ = criar_nodo("identifiers list");
+		add_filho($$, criar_nodo("identifier"));
+		add_filho($$, criar_nodo("left bracket"));
+		add_filho($$, criar_nodo("integer"));
+		add_filho($$, criar_nodo("right bracket"));
+	
 	}
 	| 
 	T_Id {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
-		} else {
-			criar_simbolo($1);
-
-			$$ = criar_nodo("identifiers list");
-			add_filho($$, criar_nodo("identifier"));
 		}
+
+		int id = criar_simbolo($1);
+		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
+
+		$$ = criar_nodo("identifiers list");
+		add_filho($$, criar_nodo("identifier"));
 	}
 
 expression:
@@ -539,18 +559,22 @@ expression:
 		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
 		if (!simbolo) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $3.linha, $3.lexema);
-		} else {
-			criar_simbolo($1);
-			criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
-
-			$$ = criar_nodo("list expression");
-			add_filho($$, criar_nodo("list operation"));
-			add_filho($$, criar_nodo("left parentheses"));
-			add_filho($$, criar_nodo("identifier"));
-			add_filho($$, criar_nodo("right parentheses"));
 		}
+
+		if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
+		}
+
+		criar_simbolo($1);
+		criar_simbolo($2);
+		criar_simbolo($3);
+		criar_simbolo($4);
+
+		$$ = criar_nodo("list expression");
+		add_filho($$, criar_nodo("list operation"));
+		add_filho($$, criar_nodo("left parentheses"));
+		add_filho($$, criar_nodo("identifier"));
+		add_filho($$, criar_nodo("right parentheses"));
 	}
 
 expression_1:
@@ -597,29 +621,9 @@ expression_3:
 		add_filho($$, criar_nodo("unary operation"));
 		add_filho($$, $2);
 	}
-	| T_UOp T_LeftParentheses expression T_RightParentheses {
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
-
-		$$ = criar_nodo("expression 3");
-		add_filho($$, criar_nodo("unary operation"));
-		add_filho($$, criar_nodo("left parentheses"));
-		add_filho($$, $3);
-		add_filho($$, criar_nodo("right parentheses"));
-	}
 	| value {
 		$$ = criar_nodo("expression 3");
 		add_filho($$, $1);
-	}
-	| T_LeftParentheses expression T_RightParentheses {
-		criar_simbolo($1);
-		criar_simbolo($3);
-
-		$$ = criar_nodo("expression 3");
-		add_filho($$, criar_nodo("left parentheses"));
-		add_filho($$, $2);
-		add_filho($$, criar_nodo("right parentheses"));
 	}
 
 number:

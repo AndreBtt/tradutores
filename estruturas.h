@@ -10,8 +10,12 @@ typedef struct ListaSimbolo ListaSimbolo;
 typedef struct Token Token;
 typedef struct ListaNodo ListaNodo;
 typedef struct Nodo Nodo;
+typedef struct Pilha Pilha;
+typedef struct PilhaElemento PilhaElemento;
 
-char* buscarToken(char*);
+char* buscar_token(char*);
+Pilha* pilha_push(Pilha*, int);
+Pilha* pilha_pop(Pilha*);
 char erroGlobal[2000000];
 
 struct Token {
@@ -32,12 +36,22 @@ struct Nodo {
 struct Simbolo {
 	char token[20];
 	char lexema[34];
-	int linha, coluna, escopo;
+	int id, linha, coluna, escopo;
+	char *tipo;
 	Simbolo *proximo;
 };
 
 struct ListaSimbolo {
 	Simbolo *primeiro;
+};
+
+struct Pilha {
+	PilhaElemento *elemento;
+};
+
+struct PilhaElemento {
+	int val;
+	PilhaElemento *proximo;
 };
 
 #endif
