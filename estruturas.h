@@ -49,7 +49,7 @@ struct ListaSimbolo {
 
 struct Pilha {
 	PilhaElemento *elemento;
-	int tam;
+	int tamanho;
 };
 
 struct PilhaElemento {

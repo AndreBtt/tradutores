@@ -17,7 +17,7 @@ int criar_simbolo(Token t) {
 	simbolo->tipo = NULL;
 	simbolo->parametros = (Pilha*) malloc(sizeof(Pilha));
 	simbolo->parametros->elemento = NULL;
-	simbolo->parametros->tam = 0;
+	simbolo->parametros->tamanho = 0;
 	simbolo->escopo = t.escopo;
 	simbolo->funcao = 0;
 	simbolo->id = id++;

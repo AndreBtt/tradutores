@@ -118,6 +118,7 @@ function_definition:
 		simbolo->funcao = 1;
 		if (pilhaParametros != NULL) {
 			simbolo->parametros->elemento = pilhaParametros->elemento;
+			simbolo->parametros->tamanho = pilhaParametros->tamanho;
 			pilhaParametros = NULL;
 		}
 
@@ -309,14 +310,34 @@ function_call:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s não foi declarada\n", $1.linha, $1.lexema);
 		}
 
-		printf("%d\n", simbolo->parametros->tam);
-		printf("%d\n", pilhaArgumentos->tam);
+		if (simbolo->parametros->tamanho != pilhaArgumentos->tamanho) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera receber %d argumentos mas foi chamada com %d argumentos\n", $1.linha, simbolo->parametros->tamanho, pilhaArgumentos->tamanho);
+		}
 
-		// PilhaElemento *aux = simbolo->parametros->elemento;
-		// while (aux != NULL) {
-		// 	printf("PARAM: %d\n", aux->val);
-		// 	aux = aux->proximo;
-		// }
+		// o que eu espero receber
+		PilhaElemento *parametros = simbolo->parametros->elemento; 
+		
+		// o que eu recebi
+		PilhaElemento *argumentos = pilhaArgumentos->elemento;
+		
+		while (parametros != NULL && argumentos != NULL) {
+			Simbolo* parametro = buscar_simbolo_id(parametros->val);
+			Simbolo* argumento = buscar_simbolo_id(argumentos->val);
+
+			char *parametroTipo = parametro->tipo;
+
+			char *argumentoTipo = argumento->tipo;
+			if (argumento->tipo == NULL) {
+				printf("%s\n", argumento->token);
+				argumento->tipo = malloc(strlen(argumento->token) + 1);
+				strcpy(argumento->tipo, argumento->token);
+			}
+
+			printf("%s -----  %s\n", parametroTipo, argumentoTipo);
+		
+			parametros = parametros->proximo;
+			argumentos = argumentos->proximo;
+		}
 
 		$$ = criar_nodo("function_call");
 		add_filho($$, criar_nodo("identifier"));
@@ -429,11 +450,11 @@ return:
 value:
 	T_Id {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (!simbolo) {
+		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
+		} else {
+			pilhaArgumentos = pilha_push(pilhaArgumentos, simbolo->id);
 		}
-
-		pilhaArgumentos = pilha_push(pilhaArgumentos, simbolo->id);
 
 		$$ = criar_nodo("value");
 		add_filho($$, criar_nodo("identifier"));

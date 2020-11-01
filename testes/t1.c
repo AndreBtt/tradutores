@@ -1,8 +1,9 @@
-int f(int x, int z) {
+int f(int x, float z) {
   float als;
 }
 
 int main() {
-  int c;
-  f(c);
+  int c, a;
+  float j;
+  f(c, 5);
 }

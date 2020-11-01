@@ -41,13 +41,13 @@ Pilha* pilha_push(Pilha *p, int val) {
 	if (p == NULL) {
 		p = (Pilha*) malloc(sizeof(Pilha));
 		p->elemento = NULL;
-		p->tam = 0;
+		p->tamanho = 0;
 	}
 	PilhaElemento *novoElemento = (PilhaElemento*) malloc(sizeof(PilhaElemento));
 	novoElemento->val = val;
 	novoElemento->proximo = p->elemento;
 	p->elemento = novoElemento;
-	p->tam += 1;
+	p->tamanho += 1;
 
 	return p;
 }
