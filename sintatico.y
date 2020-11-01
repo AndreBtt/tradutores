@@ -312,31 +312,35 @@ function_call:
 
 		if (simbolo->parametros->tamanho != pilhaArgumentos->tamanho) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera receber %d argumentos mas foi chamada com %d argumentos\n", $1.linha, simbolo->parametros->tamanho, pilhaArgumentos->tamanho);
-		}
+		} else {
+			// o que eu espero receber
+			PilhaElemento *parametros = simbolo->parametros->elemento; 
+			
+			// o que eu recebi
+			PilhaElemento *argumentos = pilhaArgumentos->elemento;
+			
+			int numeroArgumento = 1;
 
-		// o que eu espero receber
-		PilhaElemento *parametros = simbolo->parametros->elemento; 
-		
-		// o que eu recebi
-		PilhaElemento *argumentos = pilhaArgumentos->elemento;
-		
-		while (parametros != NULL && argumentos != NULL) {
-			Simbolo* parametro = buscar_simbolo_id(parametros->val);
-			Simbolo* argumento = buscar_simbolo_id(argumentos->val);
+			while (parametros != NULL && argumentos != NULL) {
+				Simbolo* parametro = buscar_simbolo_id(parametros->val);
+				Simbolo* argumento = buscar_simbolo_id(argumentos->val);
 
-			char *parametroTipo = parametro->tipo;
+				char *parametroTipo = parametro->tipo;
 
-			char *argumentoTipo = argumento->tipo;
-			if (argumento->tipo == NULL) {
-				printf("%s\n", argumento->token);
-				argumento->tipo = malloc(strlen(argumento->token) + 1);
-				strcpy(argumento->tipo, argumento->token);
+				char *argumentoTipo = argumento->tipo;
+				if (argumentoTipo == NULL) {
+					argumentoTipo = malloc(strlen(argumento->token) + 1);
+					strcpy(argumentoTipo, argumento->token);
+				}
+
+				if (strcmp(parametroTipo, argumentoTipo) != 0) {
+					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento numero %d da função %s eh do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
+				}
+			
+				parametros = parametros->proximo;
+				argumentos = argumentos->proximo;
+				numeroArgumento++;
 			}
-
-			printf("%s -----  %s\n", parametroTipo, argumentoTipo);
-		
-			parametros = parametros->proximo;
-			argumentos = argumentos->proximo;
 		}
 
 		$$ = criar_nodo("function_call");
@@ -681,6 +685,8 @@ expression_3:
 number:
 	T_Integer {
 		int id = criar_simbolo($1);
+		Simbolo *simbolo = buscar_simbolo_id(id);
+		strcpy(simbolo->token, "int");
 		pilhaArgumentos = pilha_push(pilhaArgumentos, id);
 
 		$$ = criar_nodo("number");
@@ -688,6 +694,8 @@ number:
 	}
 	| T_Float {
 		int id = criar_simbolo($1);
+		Simbolo *simbolo = buscar_simbolo_id(id);
+		strcpy(simbolo->token, "float");
 		pilhaArgumentos = pilha_push(pilhaArgumentos, id);
 
 		$$ = criar_nodo("number");
