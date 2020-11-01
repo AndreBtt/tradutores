@@ -9,6 +9,7 @@ void definir_tipo(int, char*);
 void mostrar_tabela();
 void liberar_tabela();
 Simbolo* buscar_simbolo(char*, int);
+Simbolo* buscar_simbolo_id(int);
 
 void yyerror (char const *);
 

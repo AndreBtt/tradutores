@@ -38,6 +38,8 @@ struct Simbolo {
 	char lexema[34];
 	int id, linha, coluna, escopo;
 	char *tipo;
+	int funcao;
+	Pilha *parametros;
 	Simbolo *proximo;
 };
 
@@ -47,6 +49,7 @@ struct ListaSimbolo {
 
 struct Pilha {
 	PilhaElemento *elemento;
+	int tam;
 };
 
 struct PilhaElemento {

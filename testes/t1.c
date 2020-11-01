@@ -1,4 +1,8 @@
-List <int> main() {
+int f(int x, int z) {
+  float als;
+}
+
+int main() {
   int c;
-  Avg(c);
+  f(c);
 }

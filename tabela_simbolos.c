@@ -15,7 +15,11 @@ int criar_simbolo(Token t) {
 	simbolo->coluna = t.coluna;
 	simbolo->proximo = NULL;
 	simbolo->tipo = NULL;
+	simbolo->parametros = (Pilha*) malloc(sizeof(Pilha));
+	simbolo->parametros->elemento = NULL;
+	simbolo->parametros->tam = 0;
 	simbolo->escopo = t.escopo;
+	simbolo->funcao = 0;
 	simbolo->id = id++;
 
 	if (tabelaSimbolo == NULL) {
@@ -47,10 +51,15 @@ char* buscar_tipo(Nodo *n) {
 }
 
 void definir_tipo(int id, char *tipo) {
-	Simbolo *simbolo = tabelaSimbolo->primeiro;
-	while (simbolo->id != id) simbolo = simbolo->proximo;
+	Simbolo *simbolo = buscar_simbolo_id(id);
 	simbolo->tipo = malloc(strlen(tipo) + 1);
 	strcpy(simbolo->tipo, tipo);
+}
+
+Simbolo* buscar_simbolo_id(int id) {
+	Simbolo *simbolo = tabelaSimbolo->primeiro;
+	while (simbolo->id != id) simbolo = simbolo->proximo;
+	return simbolo;
 }
 
 Simbolo* buscar_simbolo(char *s, int escopo) {
