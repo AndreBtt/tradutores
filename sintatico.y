@@ -185,7 +185,7 @@ parameters_list:
 parameter:
 	type_identifier T_Id {
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
 		}
 		char *tipo = buscar_tipo($1);
@@ -200,7 +200,7 @@ parameter:
 	}
 	| type_identifier T_Id T_LeftBracket T_RightBracket {
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
 		}
 		int id = criar_simbolo($2);
@@ -345,7 +345,7 @@ function_call:
 				}
 
 				if (strcmp(parametroTipo, argumentoTipo) != 0) {
-					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento numero %d da função %s eh do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
+					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
 				}
 			
 				parametros = parametros->proximo;
@@ -362,7 +362,7 @@ function_call:
 	}
 	| T_Id T_LeftParentheses T_RightParentheses  {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, 0);
-		if (!simbolo) {
+		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s não foi declarada\n", $1.linha, $1.lexema);
 		}
 
@@ -496,10 +496,14 @@ value:
 array_access:
 	T_Id T_LeftBracket T_Integer T_RightBracket  {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (!simbolo) {
+		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
-			criar_simbolo($1);
+			int posicao = atoi($3.lexema);
+			if (posicao < 0 || posicao >= simbolo->vetorLimite) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: posição %d inválida no vetor %s\n", $1.linha, posicao, $1.lexema);
+			}
+
 			criar_simbolo($2);
 			criar_simbolo($4);
 
@@ -519,7 +523,17 @@ variables_declaration:
 		while (pilhaIdentificadores->elemento != NULL) {
 			// listar ID dos identificadores que estão sendo declarados
 			int id = pilhaIdentificadores->elemento->val;
-			definir_tipo(id, tipo);
+			Simbolo *simbolo = buscar_simbolo_id(id);
+			if (simbolo->tipo != NULL) {
+				// é um vetor
+				char *tipoVetor = malloc(strlen(tipo) + 1);
+				strcpy(tipoVetor, tipo);
+				strcat(tipoVetor, simbolo->tipo);
+				definir_tipo(id, tipo);
+			} else {
+				// tipo normal
+				definir_tipo(id, tipo);
+			}
 			pilhaIdentificadores = pilha_pop(pilhaIdentificadores);
 		}
 
@@ -532,7 +546,7 @@ variables_declaration:
 identifiers_list:
 	T_Id T_Comma identifiers_list {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		}
 		
@@ -545,14 +559,18 @@ identifiers_list:
 		add_filho($$, criar_nodo("comma"));
 		add_filho($$, $3);
 	}
-	| 
+	|
 	T_Id T_LeftBracket T_Integer T_RightBracket T_Comma identifiers_list {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		}
 
 		int id = criar_simbolo($1);
+		definir_tipo(id, "[]");
+		simbolo = buscar_simbolo_id(id);
+		simbolo->vetorLimite = atoi($3.lexema);
+
 		criar_simbolo($2);
 		criar_simbolo($3);
 		criar_simbolo($4);
@@ -570,11 +588,15 @@ identifiers_list:
 	| 
 	T_Id T_LeftBracket T_Integer T_RightBracket {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		}
 
 		int id = criar_simbolo($1);
+		definir_tipo(id, "[]");
+		simbolo = buscar_simbolo_id(id);
+		simbolo->vetorLimite = atoi($3.lexema);
+
 		criar_simbolo($2);
 		criar_simbolo($3);
 		criar_simbolo($4);
@@ -590,7 +612,7 @@ identifiers_list:
 	| 
 	T_Id {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (simbolo) {
+		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		}
 
@@ -604,10 +626,9 @@ identifiers_list:
 expression:
 	T_Id T_assignment expression {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
-		if (!simbolo) {
+		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
-			criar_simbolo($1);
 			criar_simbolo($2);
 
 			$$ = criar_nodo("expression");
@@ -630,7 +651,7 @@ expression:
 	}
 	| T_ListOperation T_LeftParentheses T_Id T_RightParentheses {
 		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
-		if (!simbolo) {
+		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $3.linha, $3.lexema);
 		}
 
@@ -640,7 +661,6 @@ expression:
 
 		criar_simbolo($1);
 		criar_simbolo($2);
-		criar_simbolo($3);
 		criar_simbolo($4);
 
 		$$ = criar_nodo("list expression");

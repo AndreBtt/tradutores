@@ -40,6 +40,7 @@ struct Simbolo {
 	int id, linha, coluna, escopo;
 	char *tipo;
 	int funcao;
+	int vetorLimite;
 	Pilha *parametros;
 	Simbolo *proximo;
 };

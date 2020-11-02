@@ -1,11 +1,4 @@
-int f(int x, float z) {
-  float als;
-}
-
 int main() {
-  int c, a;
-  float j;
-  j = 5;
-  a = 9;
-  f(5, 6.0);
+  int arr[5], b;
+  b = arr[3];
 }
