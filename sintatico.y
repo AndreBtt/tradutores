@@ -13,6 +13,7 @@ Nodo *raiz;
 Pilha *pilhaIdentificadores;
 Pilha *pilhaParametros;
 Pilha *pilhaArgumentos;
+Pilha *pilhaValores;
 }
 
 %union {
@@ -142,6 +143,8 @@ function_body:
 
 parameters:
 	T_LeftParentheses parameters_list T_RightParentheses {
+		pilhaValores = pilha_libera(pilhaValores);
+
 		criar_simbolo($1);
 		criar_simbolo($3);
 
@@ -161,6 +164,9 @@ parameters:
 
 parameters_list:
 	parameter T_Comma parameters_list {
+		pilhaParametros = pilha_push(pilhaParametros, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
 		criar_simbolo($2);
 
 		$$ = criar_nodo("parameters list");
@@ -169,6 +175,9 @@ parameters_list:
 		add_filho($$, $3);
 	} 
 	| parameter {
+		pilhaParametros = pilha_push(pilhaParametros, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
 		$$ = criar_nodo("parameters list");
 		add_filho($$, $1);
 	}
@@ -183,7 +192,7 @@ parameter:
 		int id = criar_simbolo($2);
 		definir_tipo(id, tipo);
 
-		pilhaParametros = pilha_push(pilhaParametros, id);
+		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("parameter");
 		add_filho($$, $1);
@@ -201,7 +210,7 @@ parameter:
 		char *tipo = buscar_tipo($1);
 		definir_tipo(id, tipo);
 
-		pilhaParametros = pilha_push(pilhaParametros, id);
+		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("parameter");
 		add_filho($$, $1);
@@ -305,6 +314,8 @@ write:
 
 function_call:
 	T_Id T_LeftParentheses arguments_list T_RightParentheses  {
+		pilhaValores = pilha_libera(pilhaValores);
+
 		Simbolo *simbolo = buscar_simbolo($1.lexema, 0);
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s não foi declarada\n", $1.linha, $1.lexema);
@@ -363,6 +374,9 @@ function_call:
 
 arguments_list:
 	value T_Comma arguments_list  {
+		pilhaArgumentos = pilha_push(pilhaArgumentos, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
 		criar_simbolo($2);
 
 		$$ = criar_nodo("arguments list");
@@ -371,6 +385,9 @@ arguments_list:
 		add_filho($$, $3);
 	}
 	| value {
+		pilhaArgumentos = pilha_push(pilhaArgumentos, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
 		$$ = criar_nodo("arguments list");
 		add_filho($$, $1);
 	}
@@ -457,7 +474,7 @@ value:
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
-			pilhaArgumentos = pilha_push(pilhaArgumentos, simbolo->id);
+			pilhaValores = pilha_push(pilhaValores, simbolo->id);
 		}
 
 		$$ = criar_nodo("value");
@@ -687,7 +704,7 @@ number:
 		int id = criar_simbolo($1);
 		Simbolo *simbolo = buscar_simbolo_id(id);
 		strcpy(simbolo->token, "int");
-		pilhaArgumentos = pilha_push(pilhaArgumentos, id);
+		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number");
 		add_filho($$, criar_nodo("integer"));
@@ -696,7 +713,7 @@ number:
 		int id = criar_simbolo($1);
 		Simbolo *simbolo = buscar_simbolo_id(id);
 		strcpy(simbolo->token, "float");
-		pilhaArgumentos = pilha_push(pilhaArgumentos, id);
+		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number");
 		add_filho($$, criar_nodo("float"));

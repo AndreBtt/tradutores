@@ -33,6 +33,7 @@ Pilha* pilha_pop(Pilha *p) {
 	if (p->elemento == NULL) return p;
 	PilhaElemento *aux = p->elemento;
 	p->elemento = p->elemento->proximo;
+	p->tamanho -= 1;
 	free(aux);
 	return p;
 }
@@ -50,4 +51,10 @@ Pilha* pilha_push(Pilha *p, int val) {
 	p->tamanho += 1;
 
 	return p;
+}
+
+Pilha* pilha_libera(Pilha* p) {
+	while (p->tamanho != 0) {
+		p = pilha_pop(p);
+	}
 }
