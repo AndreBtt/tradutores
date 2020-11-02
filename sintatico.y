@@ -109,18 +109,18 @@ function_definition:
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da função %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
-		}
+		} else {
+			int id = criar_simbolo($2);
+			char *tipo = buscar_tipo($1);
+			definir_tipo(id, tipo);
 
-		int id = criar_simbolo($2);
-		char *tipo = buscar_tipo($1);
-		definir_tipo(id, tipo);
-
-		simbolo = buscar_simbolo_id(id);
-		simbolo->funcao = 1;
-		if (pilhaParametros != NULL) {
-			simbolo->parametros->elemento = pilhaParametros->elemento;
-			simbolo->parametros->tamanho = pilhaParametros->tamanho;
-			pilhaParametros = NULL;
+			simbolo = buscar_simbolo_id(id);
+			simbolo->funcao = 1;
+			if (pilhaParametros != NULL) {
+				simbolo->parametros->elemento = pilhaParametros->elemento;
+				simbolo->parametros->tamanho = pilhaParametros->tamanho;
+				pilhaParametros = NULL;
+			}
 		}
 
 		$$ = criar_nodo("function definition");
@@ -187,12 +187,13 @@ parameter:
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
-		}
-		char *tipo = buscar_tipo($1);
-		int id = criar_simbolo($2);
-		definir_tipo(id, tipo);
+		} else {
+			char *tipo = buscar_tipo($1);
+			int id = criar_simbolo($2);
+			definir_tipo(id, tipo);
 
-		pilhaValores = pilha_push(pilhaValores, id);
+			pilhaValores = pilha_push(pilhaValores, id);
+		}
 
 		$$ = criar_nodo("parameter");
 		add_filho($$, $1);
@@ -202,15 +203,16 @@ parameter:
 		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
+		} else {
+			int id = criar_simbolo($2);
+			criar_simbolo($3);
+			criar_simbolo($4);
+
+			char *tipo = buscar_tipo($1);
+			definir_tipo(id, tipo);
+
+			pilhaValores = pilha_push(pilhaValores, id);
 		}
-		int id = criar_simbolo($2);
-		criar_simbolo($3);
-		criar_simbolo($4);
-
-		char *tipo = buscar_tipo($1);
-		definir_tipo(id, tipo);
-
-		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("parameter");
 		add_filho($$, $1);
@@ -319,40 +321,41 @@ function_call:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, 0);
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s não foi declarada\n", $1.linha, $1.lexema);
-		}
-
-		if (simbolo->parametros->tamanho != pilhaArgumentos->tamanho) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera receber %d argumentos mas foi chamada com %d argumentos\n", $1.linha, simbolo->parametros->tamanho, pilhaArgumentos->tamanho);
 		} else {
-			// o que eu espero receber
-			PilhaElemento *parametros = simbolo->parametros->elemento; 
-			
-			// o que eu recebi
-			PilhaElemento *argumentos = pilhaArgumentos->elemento;
-			
-			int numeroArgumento = 1;
+			if (simbolo->parametros->tamanho != pilhaArgumentos->tamanho) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera receber %d argumentos mas foi chamada com %d argumentos\n", $1.linha, simbolo->parametros->tamanho, pilhaArgumentos->tamanho);
+			} else {
+				// o que eu espero receber
+				PilhaElemento *parametros = simbolo->parametros->elemento; 
+				
+				// o que eu recebi
+				PilhaElemento *argumentos = pilhaArgumentos->elemento;
+				
+				int numeroArgumento = 1;
 
-			while (parametros != NULL && argumentos != NULL) {
-				Simbolo* parametro = buscar_simbolo_id(parametros->val);
-				Simbolo* argumento = buscar_simbolo_id(argumentos->val);
+				while (parametros != NULL && argumentos != NULL) {
+					Simbolo* parametro = buscar_simbolo_id(parametros->val);
+					Simbolo* argumento = buscar_simbolo_id(argumentos->val);
 
-				char *parametroTipo = parametro->tipo;
+					char *parametroTipo = parametro->tipo;
 
-				char *argumentoTipo = argumento->tipo;
-				if (argumentoTipo == NULL) {
-					argumentoTipo = malloc(strlen(argumento->token) + 1);
-					strcpy(argumentoTipo, argumento->token);
+					char *argumentoTipo = argumento->tipo;
+					if (argumentoTipo == NULL) {
+						argumentoTipo = malloc(strlen(argumento->token) + 1);
+						strcpy(argumentoTipo, argumento->token);
+					}
+
+					if (strcmp(parametroTipo, argumentoTipo) != 0) {
+						sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
+					}
+				
+					parametros = parametros->proximo;
+					argumentos = argumentos->proximo;
+					numeroArgumento++;
 				}
-
-				if (strcmp(parametroTipo, argumentoTipo) != 0) {
-					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
-				}
-			
-				parametros = parametros->proximo;
-				argumentos = argumentos->proximo;
-				numeroArgumento++;
 			}
 		}
+
 
 		$$ = criar_nodo("function_call");
 		add_filho($$, criar_nodo("identifier"));
@@ -506,13 +509,13 @@ array_access:
 
 			criar_simbolo($2);
 			criar_simbolo($4);
-
-			$$ = criar_nodo("array access");
-			add_filho($$, criar_nodo("identifier"));
-			add_filho($$, criar_nodo("left bracket"));
-			add_filho($$, criar_nodo("integer"));
-			add_filho($$, criar_nodo("right bracket"));
 		}
+
+		$$ = criar_nodo("array access");
+		add_filho($$, criar_nodo("identifier"));
+		add_filho($$, criar_nodo("left bracket"));
+		add_filho($$, criar_nodo("integer"));
+		add_filho($$, criar_nodo("right bracket"));
 	}
 
 variables_declaration:
@@ -548,12 +551,12 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
+		} else {
+			int id = criar_simbolo($1);
+			criar_simbolo($2);
+			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
 		
-		int id = criar_simbolo($1);
-		criar_simbolo($2);
-		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
-
 		$$ = criar_nodo("identifiers list");
 		add_filho($$, criar_nodo("identifier"));
 		add_filho($$, criar_nodo("comma"));
@@ -564,18 +567,18 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
+		} else {
+			int id = criar_simbolo($1);
+			definir_tipo(id, "[]");
+			simbolo = buscar_simbolo_id(id);
+			simbolo->vetorLimite = atoi($3.lexema);
+
+			criar_simbolo($2);
+			criar_simbolo($3);
+			criar_simbolo($4);
+			criar_simbolo($5);
+			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
-
-		int id = criar_simbolo($1);
-		definir_tipo(id, "[]");
-		simbolo = buscar_simbolo_id(id);
-		simbolo->vetorLimite = atoi($3.lexema);
-
-		criar_simbolo($2);
-		criar_simbolo($3);
-		criar_simbolo($4);
-		criar_simbolo($5);
-		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 
 		$$ = criar_nodo("identifiers list");
 		add_filho($$, criar_nodo("identifier"));
@@ -590,17 +593,17 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
+		} else {
+			int id = criar_simbolo($1);
+			definir_tipo(id, "[]");
+			simbolo = buscar_simbolo_id(id);
+			simbolo->vetorLimite = atoi($3.lexema);
+
+			criar_simbolo($2);
+			criar_simbolo($3);
+			criar_simbolo($4);
+			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
-
-		int id = criar_simbolo($1);
-		definir_tipo(id, "[]");
-		simbolo = buscar_simbolo_id(id);
-		simbolo->vetorLimite = atoi($3.lexema);
-
-		criar_simbolo($2);
-		criar_simbolo($3);
-		criar_simbolo($4);
-		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 
 		$$ = criar_nodo("identifiers list");
 		add_filho($$, criar_nodo("identifier"));
@@ -614,10 +617,10 @@ identifiers_list:
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
+		} else {
+			int id = criar_simbolo($1);
+			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
-
-		int id = criar_simbolo($1);
-		pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 
 		$$ = criar_nodo("identifiers list");
 		add_filho($$, criar_nodo("identifier"));
@@ -630,12 +633,12 @@ expression:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
 			criar_simbolo($2);
-
-			$$ = criar_nodo("expression");
-			add_filho($$, criar_nodo("identifier"));
-			add_filho($$, criar_nodo("assignment"));
-			add_filho($$, $3);
 		}
+
+		$$ = criar_nodo("expression");
+		add_filho($$, criar_nodo("identifier"));
+		add_filho($$, criar_nodo("assignment"));
+		add_filho($$, $3);
 	}
 	| array_access T_assignment expression {
 		criar_simbolo($2);
@@ -653,15 +656,15 @@ expression:
 		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $3.linha, $3.lexema);
-		}
+		} else {
+			if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
+			}
 
-		if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
+			criar_simbolo($1);
+			criar_simbolo($2);
+			criar_simbolo($4);
 		}
-
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
 
 		$$ = criar_nodo("list expression");
 		add_filho($$, criar_nodo("list operation"));
