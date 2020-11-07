@@ -14,6 +14,7 @@ Pilha *pilhaIdentificadores;
 Pilha *pilhaParametros;
 Pilha *pilhaArgumentos;
 Pilha *pilhaValores;
+char *retornoFuncao;
 }
 
 %union {
@@ -113,6 +114,12 @@ function_definition:
 			int id = criar_simbolo($2);
 			char *tipo = buscar_tipo($1);
 			definir_tipo(id, tipo);
+
+			if (retornoFuncao == NULL) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", $2.linha, tipo);
+			} else if (strcmp(tipo, retornoFuncao) != 0) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retoronado tipo %s\n", $2.linha, tipo, retornoFuncao);
+			}
 
 			simbolo = buscar_simbolo_id(id);
 			simbolo->funcao = 1;
@@ -338,13 +345,7 @@ function_call:
 					Simbolo* argumento = buscar_simbolo_id(argumentos->val);
 
 					char *parametroTipo = parametro->tipo;
-
 					char *argumentoTipo = argumento->tipo;
-					if (argumentoTipo == NULL) {
-						argumentoTipo = malloc(strlen(argumento->token) + 1);
-						strcpy(argumentoTipo, argumento->token);
-					}
-
 					if (strcmp(parametroTipo, argumentoTipo) != 0) {
 						sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
 					}
@@ -464,6 +465,10 @@ return:
 	T_Return value T_Semicolon {
 		criar_simbolo($1);
 		criar_simbolo($3);
+
+		Simbolo *simbolo = buscar_simbolo_id(pilhaValores->elemento->val);
+		retornoFuncao = malloc(strlen(simbolo->tipo) + 1);
+		strcpy(retornoFuncao, simbolo->tipo);
 
 		$$ = criar_nodo("return");
 		add_filho($$, criar_nodo("return"));
@@ -727,6 +732,8 @@ number:
 		int id = criar_simbolo($1);
 		Simbolo *simbolo = buscar_simbolo_id(id);
 		strcpy(simbolo->token, "int");
+		simbolo->tipo = malloc(strlen("int") + 1);
+		strcpy(simbolo->tipo, "int");
 		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number");
@@ -736,6 +743,8 @@ number:
 		int id = criar_simbolo($1);
 		Simbolo *simbolo = buscar_simbolo_id(id);
 		strcpy(simbolo->token, "float");
+		simbolo->tipo = malloc(strlen("float") + 1);
+		strcpy(simbolo->tipo, "float");
 		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number");
