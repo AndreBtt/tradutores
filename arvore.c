@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "arvore.h"
+#include "tabela_simbolos.h"
 
 Nodo* criar_nodo(char *tipo, int id) {
 	Nodo *novo = (Nodo*) malloc(sizeof(Nodo));
@@ -36,6 +37,52 @@ void mostrar_arvore(Nodo *raiz, int profundidade) {
 	if (raiz->filhos != NULL) {
 		for (i = 0; i < profundidade-1; i++) printf(" |");
 		printf(" \n");
+	}
+}
+
+int verificarTipo(Nodo *raiz, char *tipo) {
+	ListaNodo *filhoAtual = raiz->filhos;
+	int falha = 0;
+
+	if (filhoAtual == NULL && raiz->id != -1) {
+		// uma folha que possui um valor
+		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
+		if (strcmp(simbolo->tipo, tipo) != 0) {
+			// tipo invalido
+			falha = 1;
+		}
+	}
+
+	while (filhoAtual != NULL) {
+		falha |= verificarTipo(filhoAtual->val, tipo);
+		filhoAtual = filhoAtual->proximo;
+	}
+
+	return falha;
+}
+
+void armazenarTipos(Nodo *raiz, char *tipo) {
+	ListaNodo *filhoAtual = raiz->filhos;
+	if (filhoAtual == NULL && raiz->id != -1) {
+		// uma folha que possui um valor
+
+		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
+
+		if (simbolo->tipo != NULL) {
+			// é um vetor
+			char *tipoVetor = malloc(strlen(tipo) + 1);
+			strcpy(tipoVetor, tipo);
+			strcat(tipoVetor, simbolo->tipo);
+			definir_tipo(raiz->id, tipo);
+		} else {
+			// tipo normal
+			definir_tipo(raiz->id, tipo);
+		}
+	}
+
+	while (filhoAtual != NULL) {
+		armazenarTipos(filhoAtual->val, tipo);
+		filhoAtual = filhoAtual->proximo;
 	}
 }
 

@@ -10,7 +10,6 @@
 #include "arvore.h"
 extern int yylex();
 Nodo *raiz;
-Pilha *pilhaIdentificadores;
 Pilha *pilhaParametros;
 Pilha *pilhaArgumentos;
 Pilha *pilhaValores;
@@ -539,23 +538,7 @@ variables_declaration:
 	type_identifier identifiers_list T_Semicolon {
 		criar_simbolo($3);
 		char *tipo = buscar_tipo($1);
-		int id = 0;
-		while (pilhaIdentificadores->elemento != NULL) {
-			// listar ID dos identificadores que estão sendo declarados
-			int id = pilhaIdentificadores->elemento->val;
-			Simbolo *simbolo = buscar_simbolo_id(id);
-			if (simbolo->tipo != NULL) {
-				// é um vetor
-				char *tipoVetor = malloc(strlen(tipo) + 1);
-				strcpy(tipoVetor, tipo);
-				strcat(tipoVetor, simbolo->tipo);
-				definir_tipo(id, tipo);
-			} else {
-				// tipo normal
-				definir_tipo(id, tipo);
-			}
-			pilhaIdentificadores = pilha_pop(pilhaIdentificadores);
-		}
+		armazenarTipos($2, tipo);
 
 		$$ = criar_nodo("variables declaration", -1);
 		add_filho($$, $1);
@@ -572,7 +555,6 @@ identifiers_list:
 		} else {
 			id = criar_simbolo($1);
 			criar_simbolo($2);
-			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
 		
 		$$ = criar_nodo("identifiers list", -1);
@@ -596,7 +578,6 @@ identifiers_list:
 			criar_simbolo($3);
 			criar_simbolo($4);
 			criar_simbolo($5);
-			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -622,7 +603,6 @@ identifiers_list:
 			criar_simbolo($2);
 			criar_simbolo($3);
 			criar_simbolo($4);
-			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -640,7 +620,6 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
-			pilhaIdentificadores = pilha_push(pilhaIdentificadores, id);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -655,6 +634,11 @@ expression:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
 			id = criar_simbolo($2);
+		}
+		
+		int falha = verificarTipo($3, simbolo->tipo);
+		if (falha == 1) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);
 		}
 
 		$$ = criar_nodo("expression", -1);

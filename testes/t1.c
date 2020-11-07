@@ -10,6 +10,8 @@ int main() {
 
   f(b, 1.0);
 
+  b = 5;
+
   List <int> lista;
   Avg(lista);
 
