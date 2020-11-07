@@ -3,7 +3,7 @@
 
 #include "estruturas.h"
 
-Nodo* criar_nodo(char*);
+Nodo* criar_nodo(char*, int);
 void add_filho(Nodo*, Nodo*);
 void mostrar_arvore(Nodo*, int);
 void liberar_arvore(Nodo*);

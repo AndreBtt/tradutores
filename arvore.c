@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include "arvore.h"
 
-Nodo* criar_nodo(char *tipo) {
+Nodo* criar_nodo(char *tipo, int id) {
 	Nodo *novo = (Nodo*) malloc(sizeof(Nodo));
 	novo->filhos = NULL;
+	novo->id = id;
 	novo->tipo = malloc(strlen(tipo) + 1);
 	strcpy(novo->tipo, tipo);
 	return novo;

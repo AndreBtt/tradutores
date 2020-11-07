@@ -32,6 +32,7 @@ struct ListaNodo {
 struct Nodo {
 	ListaNodo *filhos;
 	char* tipo;
+	int id;
 };
 
 struct Simbolo {
