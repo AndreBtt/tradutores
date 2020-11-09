@@ -84,7 +84,6 @@ char *retornoFuncao;
 start:
 	program {
 		raiz = $$;
-		// free(pilhaIdentificadores);
 		// free(pilhaParametros);
 	}
 
@@ -759,6 +758,7 @@ number:
 int main (void) {
 	yyparse();
 	printf("\n");
+	if (busca_main() == 0) sprintf(erroGlobal + strlen(erroGlobal),"Função main não foi declarada\n");
 	if (erroGlobal[0]) {
 		printf("%s", erroGlobal);
 	} else {

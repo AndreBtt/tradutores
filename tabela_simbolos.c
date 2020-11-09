@@ -101,6 +101,18 @@ void liberar_tabela() {
 	}
 }
 
+int busca_main() {
+	if (tabelaSimbolo != NULL) {
+		Simbolo *simbolo = tabelaSimbolo->primeiro;
+		while (simbolo != NULL) {
+			if (strcmp(simbolo->lexema, "main") == 0 && simbolo->funcao == 1) {
+				return 1;
+			}
+			simbolo = simbolo->proximo;
+		}
+	}
+	return 0;
+}
 
 void yyerror (char const *s) {
 	fprintf (stderr, "%s\n", s);
