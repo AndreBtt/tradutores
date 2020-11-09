@@ -1,11 +1,7 @@
-int main(){
-	int x;
-	
-	int y;
-	y = 1;
+int f() {
+	List <int> lista;
 
-	float x;
-	x = 9.0;	
-	
+	int varSemPontoVirgula
+
 	return 0;
 }

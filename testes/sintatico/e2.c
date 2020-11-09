@@ -1,9 +1,4 @@
-int main() {
-
-	if (x == 5) {
-		int b;
-		b = 9;
-	}
-
-	return ;
+int semParenteses {
+	List <int> lista;
+	return 0;
 }

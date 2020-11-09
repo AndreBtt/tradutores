@@ -8,4 +8,10 @@ int func (int a, float asd, int vc) {
 			List<int> declaracaoJunta;
 		}
 	}
+
+	return 1;
+}
+
+int main() {
+	return 1;
 }

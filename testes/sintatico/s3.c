@@ -1,8 +1,7 @@
 int main(int args) {
   List<int> a;
 
-  int media;
-  media = Avg(a);
+  Avg(a);
 
   int k;
   float x;

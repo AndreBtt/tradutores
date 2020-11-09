@@ -1,21 +1,19 @@
-int main() {
-  List <float> lista;
-  int x;
-  x = 9;
+int f(int a, float b) {
+  int j;
 
-  if (x == 9) {
-    List <int> outraLista;
-  } else {
-    int k;
-    while (k >= 3) {
-      int l;
-      if (l == 3) {
-        int c;
-        readInt c;
-      } else {
-        float q;
-        writeFloat q;
-      }
-    }
-  }
+  return j;
+}
+
+int main() {
+  int arr[5], b;
+  b = arr[3];
+
+  f(b, 1.0);
+
+  b = 5;
+
+  List <int> lista;
+  Avg(lista);
+
+  return 1;
 }
