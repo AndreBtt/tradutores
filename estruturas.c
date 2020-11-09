@@ -54,6 +54,7 @@ Pilha* pilha_push(Pilha *p, int val) {
 }
 
 Pilha* pilha_libera(Pilha* p) {
+	if (p == NULL) return p;
 	while (p->tamanho != 0) {
 		p = pilha_pop(p);
 	}

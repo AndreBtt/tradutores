@@ -84,7 +84,7 @@ char *retornoFuncao;
 start:
 	program {
 		raiz = $$;
-		// free(pilhaParametros);
+		pilhaParametros = pilha_libera(pilhaParametros);
 	}
 
 program:
@@ -360,6 +360,8 @@ function_call:
 			}
 		}
 
+		pilhaArgumentos = pilha_libera(pilhaArgumentos);
+
 
 		$$ = criar_nodo("function_call", -1);
 		add_filho($$, criar_nodo("identifier", id));
@@ -633,11 +635,10 @@ expression:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
 			id = criar_simbolo($2);
-		}
-		
-		int falha = verificarTipo($3, simbolo->tipo);
-		if (falha == 1) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);
+			int falha = verificarTipo($3, simbolo->tipo);
+			if (falha == 1) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);
+			}
 		}
 
 		$$ = criar_nodo("expression", -1);
