@@ -49,7 +49,7 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
 		if (strcmp(simbolo->tipo, tipo) != 0) {
 			// tipo diferentes
-			if (!(strcmp(tipo, "int") && strcmp(simbolo->tipo, "float"))) {
+			if (!(strcmp(tipo, "float") == 0 && strcmp(simbolo->tipo, "int") == 0)) {
 				// conversão de tipo invalida
 				falha = 1;
 			}

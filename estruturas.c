@@ -6,6 +6,7 @@
 char* buscar_token(char *s) {
 	if(strcmp(s, "int") == 0) return "int";
 	if(strcmp(s, "float") == 0) return "float";
+	if(strcmp(s, "bool") == 0) return "bool";
 	if(strcmp(s, "writeInt") == 0 || strcmp(s, "writeFloat") == 0) return "write";
 	if(strcmp(s, "readInt") == 0 || strcmp(s, "readFloat") == 0) return "read";
 	if(strcmp(s, "=") == 0) return "Assignment";

@@ -510,6 +510,17 @@ value:
 		$$ = criar_nodo("value", -1);
 		add_filho($$, $1);
 	}
+	| T_Bool {
+		int id = criar_simbolo($1);
+		Simbolo *simbolo = buscar_simbolo_id(id);
+		strcpy(simbolo->token, "bool");
+		simbolo->tipo = malloc(strlen("bool") + 1);
+		strcpy(simbolo->tipo, "bool");
+		pilhaValores = pilha_push(pilhaValores, id);
+
+		$$ = criar_nodo("value", -1);
+		add_filho($$, criar_nodo("bool", simbolo->id));
+	}
 
 array_access:
 	T_Id T_LeftBracket T_Integer T_RightBracket  {
@@ -634,12 +645,13 @@ expression:
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
-			id = criar_simbolo($2);
 			int falha = verificarTipo($3, simbolo->tipo);
 			if (falha == 1) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);
 			}
 		}
+
+		criar_simbolo($2);
 
 		$$ = criar_nodo("expression", -1);
 		add_filho($$, criar_nodo("identifier", id));
