@@ -48,8 +48,11 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 		// uma folha que possui um valor
 		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
 		if (strcmp(simbolo->tipo, tipo) != 0) {
-			// tipo invalido
-			falha = 1;
+			// tipo diferentes
+			if (!(strcmp(tipo, "int") && strcmp(simbolo->tipo, "float"))) {
+				// conversão de tipo invalida
+				falha = 1;
+			}
 		}
 	}
 
