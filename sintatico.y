@@ -768,8 +768,11 @@ number:
 
 %%
 
+int erroSintatico = 0;
 int main (void) {
 	yyparse();
+	if (erroSintatico) return 0;
+
 	printf("\n");
 	if (busca_main() == 0) sprintf(erroGlobal + strlen(erroGlobal),"Função main não foi declarada\n");
 	if (erroGlobal[0]) {
@@ -781,4 +784,9 @@ int main (void) {
 		liberar_tabela();
 	}
 	printf("\n");
+}
+
+void yyerror (char const *s) {
+	erroSintatico = 1;
+	fprintf (stderr, "%s\n", s);
 }

@@ -113,7 +113,3 @@ int busca_main() {
 	}
 	return 0;
 }
-
-void yyerror (char const *s) {
-	fprintf (stderr, "%s\n", s);
-}
