@@ -26,6 +26,11 @@ int main() {
 		mostrar_tabela();
 		liberar_tabela();
 	}
+
+	pilha_libera(pilhaParametros);
+	pilha_libera(pilhaArgumentos);
+	pilha_libera(pilhaValores);
+
 	printf("\n");
 }
 
