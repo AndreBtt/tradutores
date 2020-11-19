@@ -17,7 +17,6 @@ char* buscar_token(char*);
 Pilha* pilha_push(Pilha*, int);
 Pilha* pilha_pop(Pilha*);
 Pilha* pilha_libera(Pilha*);
-char erroGlobal[2000000];
 
 struct Token {
 	int linha, coluna, escopo;

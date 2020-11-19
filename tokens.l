@@ -1,7 +1,13 @@
 %{
+	#include "estruturas.h"
 	#include "sintatico.tab.h"
 
-    int linha = 1, coluna = 0, errors = 0, escopo = 0;
+  extern int linha;
+  extern int coluna;
+  extern int errors;
+  extern int escopo;
+  extern int escopo;
+  extern char erroGlobal[2000000];
 %}
 
 %option noyywrap

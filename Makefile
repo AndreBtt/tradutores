@@ -1,7 +1,10 @@
 all: start
 
-start: sintatico.tab.o lex.yy.o arvore.o tabela.o estruturas.o
-	gcc -g -o semantico lex.yy.o sintatico.tab.o arvore.o tabela.o estruturas.o
+start: sintatico.tab.o lex.yy.o arvore.o tabela.o estruturas.o main.o
+	gcc -g -o semantico lex.yy.o sintatico.tab.o arvore.o tabela.o estruturas.o main.o
+
+main.o:
+	gcc -c -o main.o main.c
 
 estruturas.o:
 	gcc -c -o estruturas.o estruturas.c

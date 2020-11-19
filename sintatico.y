@@ -4,17 +4,21 @@
 %debug
 %defines
 
-%code requires {
+%{
+
 #include "estruturas.h"
 #include "tabela_simbolos.h"
 #include "arvore.h"
+
 extern int yylex();
-Nodo *raiz;
-Pilha *pilhaParametros;
-Pilha *pilhaArgumentos;
-Pilha *pilhaValores;
-char *retornoFuncao;
-}
+extern Nodo *raiz;
+extern Pilha *pilhaParametros;
+extern Pilha *pilhaArgumentos;
+extern Pilha *pilhaValores;
+extern char *retornoFuncao;
+extern char erroGlobal[2000000];
+
+%}
 
 %union {
 	Token token;
@@ -767,26 +771,3 @@ number:
 	}
 
 %%
-
-int erroSintatico = 0;
-int main (void) {
-	yyparse();
-	if (erroSintatico) return 0;
-
-	printf("\n");
-	if (busca_main() == 0) sprintf(erroGlobal + strlen(erroGlobal),"Função main não foi declarada\n");
-	if (erroGlobal[0]) {
-		printf("%s", erroGlobal);
-	} else {
-		mostrar_arvore(raiz, 1);
-		liberar_arvore(raiz);
-		mostrar_tabela();
-		liberar_tabela();
-	}
-	printf("\n");
-}
-
-void yyerror (char const *s) {
-	erroSintatico = 1;
-	fprintf (stderr, "%s\n", s);
-}
