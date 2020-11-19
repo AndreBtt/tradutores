@@ -47,7 +47,7 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 	if (filhoAtual == NULL && raiz->id != -1) {
 		// uma folha que possui um valor
 		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
-		falha = verificarTipos(tipo, simbolo->tipo);
+		falha = conversaoTipo(tipo, simbolo->tipo);
 	}
 
 	while (filhoAtual != NULL) {
@@ -58,7 +58,7 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 	return falha;
 }
 
-int verificarTipos(char *esq, char *dir) {
+int conversaoTipo(char *esq, char *dir) {
 	if (strcmp(esq, dir) == 0 || (strcmp(esq, "float") == 0 && strcmp(dir, "int") == 0)) return 0;
 	return 1;
 }
