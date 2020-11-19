@@ -335,24 +335,3 @@ IN readInt|readFloat
 }
 
 %%
-
-// int main(int argc, char** argv) {
-//   argv++;
-//   argc--;
-//   if (argc > 0) {
-//     yyin = fopen(argv[0], "r");
-//     fclose(yyin);
-//   } else {
-//     printf("File not found\n");
-//     return 0;
-//   }
-//   yylex();
-//   printf("\n");
-//   if (errors > 0) {
-//     printf("Lexical analysis found %d error\n", errors);
-//   }
-//   else {
-//     printf("Lexical analysis OK.\n");
-//   }
-//   return 0;
-// }

@@ -15,8 +15,6 @@ char *retornoFuncao;
 
 int main() {
 	yyparse();
-	if (erroSintatico) return 0;
-
 	printf("\n");
 	if (busca_main() == 0) sprintf(erroGlobal + strlen(erroGlobal),"Função main não foi declarada\n");
 	if (erroGlobal[0]) {
@@ -31,6 +29,5 @@ int main() {
 }
 
 void yyerror (char const *s) {
-	erroSintatico = 1;
-	fprintf (stderr, "%s\n", s);
+  sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: %s\n", linha, s);
 }
