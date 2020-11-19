@@ -28,4 +28,4 @@ sintatico.tab.c:
 	bison sintatico.y --report=all
 
 clean:
-	rm sintatico sintatico.output sintatico.tab.c sintatico.tab.h lex.yy.c *.o
+	rm semantico sintatico.output sintatico.tab.c sintatico.tab.h lex.yy.c *.o
