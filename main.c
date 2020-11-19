@@ -3,7 +3,8 @@
 #include "arvore.h"
 #include "sintatico.tab.h"
 
-int linha, coluna, errors, escopo = 0;
+int linha = 1;
+int coluna, errors, escopo = 0;
 char erroGlobal[2000000];
 int erroSintatico = 0;
 

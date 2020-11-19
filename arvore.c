@@ -47,13 +47,7 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 	if (filhoAtual == NULL && raiz->id != -1) {
 		// uma folha que possui um valor
 		Simbolo *simbolo = buscar_simbolo_id(raiz->id);
-		if (strcmp(simbolo->tipo, tipo) != 0) {
-			// tipo diferentes
-			if (!(strcmp(tipo, "float") == 0 && strcmp(simbolo->tipo, "int") == 0)) {
-				// conversão de tipo invalida
-				falha = 1;
-			}
-		}
+		falha = verificarTipos(tipo, simbolo->tipo);
 	}
 
 	while (filhoAtual != NULL) {
@@ -62,6 +56,11 @@ int verificarTipo(Nodo *raiz, char *tipo) {
 	}
 
 	return falha;
+}
+
+int verificarTipos(char *esq, char *dir) {
+	if (strcmp(esq, dir) == 0 || (strcmp(esq, "float") == 0 && strcmp(dir, "int") == 0)) return 0;
+	return 1;
 }
 
 void armazenarTipos(Nodo *raiz, char *tipo) {

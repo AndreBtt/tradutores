@@ -120,8 +120,8 @@ function_definition:
 
 			if (retornoFuncao == NULL) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", $2.linha, tipo);
-			} else if (strcmp(tipo, retornoFuncao) != 0) {
-				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retoronado tipo %s\n", $2.linha, tipo, retornoFuncao);
+			} else if (verificarTipos(tipo, retornoFuncao) == 1) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retornado tipo %s\n", $2.linha, tipo, retornoFuncao);
 			}
 
 			simbolo = buscar_simbolo_id(id);
@@ -353,7 +353,7 @@ function_call:
 
 					char *parametroTipo = parametro->tipo;
 					char *argumentoTipo = argumento->tipo;
-					if (strcmp(parametroTipo, argumentoTipo) != 0) {
+					if (verificarTipos(parametroTipo, argumentoTipo) == 1) {
 						sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
 					}
 				
