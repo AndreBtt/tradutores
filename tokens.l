@@ -6,7 +6,6 @@
   extern int coluna;
   extern int errors;
   extern int escopo;
-  extern int escopo;
   extern char erroGlobal[2000000];
 %}
 
