@@ -1,6 +1,6 @@
 # Sequencia de comandos para execução:
 
-* make (criará um arquivo chamado sintatico)
+* make (criará um arquivo chamado semantico)
 * ./semantico < caminho_para_arquivo_teste
 
 ## Arquivos de teste
