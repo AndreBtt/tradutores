@@ -88,7 +88,6 @@ extern char erroGlobal[2000000];
 start:
 	program {
 		raiz = $$;
-		pilhaParametros = pilha_libera(pilhaParametros);
 	}
 
 program:

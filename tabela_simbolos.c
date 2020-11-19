@@ -67,7 +67,7 @@ Simbolo* buscar_simbolo(char *s, int escopo) {
 	if (tabelaSimbolo == NULL) return NULL;
 
 	Simbolo *simbolo = tabelaSimbolo->primeiro;
-	while (simbolo != NULL && !(strcmp(simbolo->lexema, s) == 0 && simbolo->escopo == escopo)) {
+	while (simbolo != NULL && !(strcmp(simbolo->lexema, s) == 0 && simbolo->escopo <= escopo)) {
 		simbolo = simbolo->proximo;
 	}
 
