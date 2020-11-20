@@ -1,7 +1,7 @@
 int f(int a, float b) {
-  int j;
+  b = 9;
 
-  return j;
+  return a;
 }
 
 int main() {

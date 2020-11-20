@@ -108,7 +108,7 @@ program:
 
 function_definition:
 	type_identifier T_Id parameters function_body {
-		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da função %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
@@ -193,7 +193,7 @@ parameters_list:
 
 parameter:
 	type_identifier T_Id {
-		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
@@ -210,7 +210,7 @@ parameter:
 		add_filho($$, criar_nodo("identifier", id));
 	}
 	| type_identifier T_Id T_LeftBracket T_RightBracket {
-		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
@@ -563,7 +563,7 @@ variables_declaration:
 
 identifiers_list:
 	T_Id T_Comma identifiers_list {
-		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
@@ -579,7 +579,7 @@ identifiers_list:
 	}
 	|
 	T_Id T_LeftBracket T_Integer T_RightBracket T_Comma identifiers_list {
-		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
@@ -605,7 +605,7 @@ identifiers_list:
 	}
 	| 
 	T_Id T_LeftBracket T_Integer T_RightBracket {
-		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
@@ -629,7 +629,7 @@ identifiers_list:
 	}
 	| 
 	T_Id {
-		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
+		Simbolo *simbolo = buscar_simbolo_escopo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
