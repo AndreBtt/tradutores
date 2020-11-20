@@ -77,6 +77,7 @@ Simbolo* buscar_simbolo(char *s, int escopo) {
 		escopo_busca--;
 	}
 
+	if (escopo_busca == -1) simbolo = NULL;
 	return simbolo;
 }
 
