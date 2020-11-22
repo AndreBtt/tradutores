@@ -142,8 +142,8 @@ function_definition:
 function_body:
 	T_LeftBrace statements T_RightBrace {
 		$$ = criar_nodo("function body", -1);
-		add_filho($$, criar_nodo("left brace", -1));
-		add_filho($$, criar_nodo("right brace", -1));
+		add_filho($$, criar_nodo("{", -1));
+		add_filho($$, criar_nodo("}", -1));
 		add_filho($$, $2);
 	}
 
@@ -152,14 +152,14 @@ parameters:
 		pilhaValores = pilha_libera(pilhaValores);
 
 		$$ = criar_nodo("parameters", -1);
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, $2);
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo(")", -1));
 	}
 	| T_LeftParentheses T_RightParentheses {
 		$$ = criar_nodo("parameters", -1);
-		add_filho($$, criar_nodo("left parentheses", -1));
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
+		add_filho($$, criar_nodo(")", -1));
 	}
 
 parameters_list:
@@ -169,7 +169,7 @@ parameters_list:
 
 		$$ = criar_nodo("parameters list", -1);
 		add_filho($$, $1);
-		add_filho($$, criar_nodo("comma", -1));
+		add_filho($$, criar_nodo(",", -1));
 		add_filho($$, $3);
 	} 
 	| parameter {
@@ -190,13 +190,14 @@ parameter:
 			char *tipo = buscar_tipo($1);
 			id = criar_simbolo($2);
 			definir_tipo(id, tipo);
+			simbolo = buscar_simbolo_id(id);
 
 			pilhaValores = pilha_push(pilhaValores, id);
 		}
 
 		$$ = criar_nodo("parameter", -1);
 		add_filho($$, $1);
-		add_filho($$, criar_nodo("identifier", id));
+		add_filho($$, criar_nodo(simbolo->lexema, id));
 	}
 	| type_identifier T_Id T_LeftBracket T_RightBracket {
 		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
@@ -240,7 +241,7 @@ statements:
 		$$ = criar_nodo("statements", -1);
 		add_filho($$, criar_nodo("left brace", -1));
 		add_filho($$, $2);
-		add_filho($$, criar_nodo("right brace", -1));
+		add_filho($$, criar_nodo("}", -1));
 	}
 	| statement {
 		$$ = criar_nodo("statements", -1);
@@ -267,7 +268,7 @@ statement:
 	| expression T_Semicolon {
 		$$ = criar_nodo("statement", -1);
 		add_filho($$, $1);
-		add_filho($$, criar_nodo("semicolon", -1));
+		add_filho($$, criar_nodo(";", -1));
 	}
 	| read {
 		$$ = criar_nodo("statement", -1);
@@ -285,7 +286,7 @@ read:
 		$$ = criar_nodo("read", -1);
 		add_filho($$, criar_nodo("read", -1));
 		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("semicolon", -1));
+		add_filho($$, criar_nodo(";", -1));
 	}
 
 write:
@@ -295,7 +296,7 @@ write:
 		$$ = criar_nodo("write", -1);
 		add_filho($$, criar_nodo("write", -1));
 		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("semicolon", -1));
+		add_filho($$, criar_nodo(";", -1));
 	}
 
 function_call:
@@ -341,9 +342,9 @@ function_call:
 
 		$$ = criar_nodo("function_call", -1);
 		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, $3);
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo(")", -1));
 	}
 	| T_Id T_LeftParentheses T_RightParentheses  {
 		Simbolo *simbolo = buscar_simbolo($1.lexema, 0);
@@ -356,8 +357,8 @@ function_call:
 
 		$$ = criar_nodo("function_call", -1);
 		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("left parentheses", -1));
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
+		add_filho($$, criar_nodo(")", -1));
 	}
 
 arguments_list:
@@ -367,7 +368,7 @@ arguments_list:
 
 		$$ = criar_nodo("arguments list", -1);
 		add_filho($$, $1);
-		add_filho($$, criar_nodo("comma", -1));
+		add_filho($$, criar_nodo(",", -1));
 		add_filho($$, $3);
 	}
 	| value {
@@ -382,18 +383,18 @@ conditional:
 	T_If T_LeftParentheses expression T_RightParentheses statements else {
 		$$ = criar_nodo("conditional", -1);
 		add_filho($$, criar_nodo("if", -1));
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, $3);
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo(")", -1));
 		add_filho($$, $5);
 		add_filho($$, $6);
 	}
 	| T_If T_LeftParentheses expression T_RightParentheses statements {
 		$$ = criar_nodo("conditional", -1);
 		add_filho($$, criar_nodo("if", -1));
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, $3);
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo(")", -1));
 		add_filho($$, $5);
 	}
 
@@ -406,21 +407,21 @@ else:
 	| T_Else T_LeftBrace statements T_RightBrace {
 		$$ = criar_nodo("else", -1);
 		add_filho($$, criar_nodo("else", -1));
-		add_filho($$, criar_nodo("left brace", -1));
+		add_filho($$, criar_nodo("{", -1));
 		add_filho($$, $3);
-		add_filho($$, criar_nodo("right brace", -1));
+		add_filho($$, criar_nodo("}", -1));
 	}
 
 loop:
 	T_While T_LeftParentheses expression T_RightParentheses T_LeftBrace statements T_RightBrace {
 		$$ = criar_nodo("loop", -1);
 		add_filho($$, criar_nodo("while", -1));
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, $3);
-		add_filho($$, criar_nodo("right parentheses", -1));
-		add_filho($$, criar_nodo("left brace", -1));
+		add_filho($$, criar_nodo(")", -1));
+		add_filho($$, criar_nodo("{", -1));
 		add_filho($$, $6);
-		add_filho($$, criar_nodo("right brace", -1));
+		add_filho($$, criar_nodo("}", -1));
 	}
 
 return:
@@ -432,7 +433,7 @@ return:
 		$$ = criar_nodo("return", -1);
 		add_filho($$, criar_nodo("return", -1));
 		add_filho($$, $2);
-		add_filho($$, criar_nodo("semicolon", -1));
+		add_filho($$, criar_nodo(";", -1));
 	}
 
 value:
@@ -502,7 +503,7 @@ variables_declaration:
 		$$ = criar_nodo("variables declaration", -1);
 		add_filho($$, $1);
 		add_filho($$, $2);
-		add_filho($$, criar_nodo("semicolon", -1));
+		add_filho($$, criar_nodo(";", -1));
 	}
 
 identifiers_list:
@@ -513,12 +514,14 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
+			simbolo = buscar_simbolo_id(id);
+
+			$$ = criar_nodo("identifiers list", -1);
+			add_filho($$, criar_nodo(simbolo->lexema, id));
+			add_filho($$, criar_nodo(",", -1));
+			add_filho($$, $3);
 		}
 		
-		$$ = criar_nodo("identifiers list", -1);
-		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("comma", -1));
-		add_filho($$, $3);
 	}
 	|
 	T_Id T_LeftBracket T_Integer T_RightBracket T_Comma identifiers_list {
@@ -569,10 +572,11 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
+			simbolo = buscar_simbolo_id(id);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
-		add_filho($$, criar_nodo("identifier", id));
+		add_filho($$, criar_nodo(simbolo->lexema, id));
 	}
 
 expression:
@@ -617,9 +621,9 @@ expression:
 
 		$$ = criar_nodo("list expression", -1);
 		add_filho($$, criar_nodo("list operation", -1));
-		add_filho($$, criar_nodo("left parentheses", -1));
+		add_filho($$, criar_nodo("(", -1));
 		add_filho($$, criar_nodo("identifier", id));
-		add_filho($$, criar_nodo("right parentheses", -1));
+		add_filho($$, criar_nodo(")", -1));
 	}
 
 expression_1:
