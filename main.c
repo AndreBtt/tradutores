@@ -36,5 +36,5 @@ int main() {
 
 void yyerror (char const *s) {
 	erroSintatico = 1;
-  sprintf(erroGlobal + strlen(erroGlobal),"%s\n", s);
+  sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: %s\n", linha, s);
 }

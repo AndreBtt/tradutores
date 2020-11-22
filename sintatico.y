@@ -141,9 +141,6 @@ function_definition:
 
 function_body:
 	T_LeftBrace statements T_RightBrace {
-		criar_simbolo($1);
-		criar_simbolo($3);
-
 		$$ = criar_nodo("function body", -1);
 		add_filho($$, criar_nodo("left brace", -1));
 		add_filho($$, criar_nodo("right brace", -1));
@@ -154,18 +151,12 @@ parameters:
 	T_LeftParentheses parameters_list T_RightParentheses {
 		pilhaValores = pilha_libera(pilhaValores);
 
-		criar_simbolo($1);
-		criar_simbolo($3);
-
 		$$ = criar_nodo("parameters", -1);
 		add_filho($$, criar_nodo("left parentheses", -1));
 		add_filho($$, $2);
 		add_filho($$, criar_nodo("right parentheses", -1));
 	}
 	| T_LeftParentheses T_RightParentheses {
-		criar_simbolo($1);
-		criar_simbolo($2);
-
 		$$ = criar_nodo("parameters", -1);
 		add_filho($$, criar_nodo("left parentheses", -1));
 		add_filho($$, criar_nodo("right parentheses", -1));
@@ -175,8 +166,6 @@ parameters_list:
 	parameter T_Comma parameters_list {
 		pilhaParametros = pilha_push(pilhaParametros, pilhaValores->elemento->val);
 		pilhaValores = pilha_pop(pilhaValores);
-
-		criar_simbolo($2);
 
 		$$ = criar_nodo("parameters list", -1);
 		add_filho($$, $1);
@@ -216,8 +205,6 @@ parameter:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
 
 			char *tipo = buscar_tipo($1);
 			definir_tipo(id, tipo);
@@ -234,16 +221,11 @@ parameter:
 
 type_identifier:
 	T_List T_ListType {
-		criar_simbolo($1);
-		criar_simbolo($2);
-
 		$$ = criar_nodo("type identifier", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
 		add_filho($$, criar_nodo($2.lexema, -1));
 	} 
 	| T_Type {
-		criar_simbolo($1);
-
 		$$ = criar_nodo("type identifier", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
 	}
@@ -255,9 +237,6 @@ statements:
 		add_filho($$, $2);
 	}
 	| T_LeftBrace statements T_RightBrace {
-		criar_simbolo($1);
-		criar_simbolo($3);
-
 		$$ = criar_nodo("statements", -1);
 		add_filho($$, criar_nodo("left brace", -1));
 		add_filho($$, $2);
@@ -286,8 +265,6 @@ statement:
 		add_filho($$, $1);
 	}
 	| expression T_Semicolon {
-		criar_simbolo($2);
-
 		$$ = criar_nodo("statement", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("semicolon", -1));
@@ -303,9 +280,7 @@ statement:
 
 read:
 	T_Read T_Id T_Semicolon {
-		criar_simbolo($1);
 		int id = criar_simbolo($2);
-		criar_simbolo($3);
 
 		$$ = criar_nodo("read", -1);
 		add_filho($$, criar_nodo("read", -1));
@@ -315,9 +290,7 @@ read:
 
 write:
 	T_Write T_Id T_Semicolon {
-		criar_simbolo($1);
 		int id = criar_simbolo($2);
-		criar_simbolo($3);
 
 		$$ = criar_nodo("write", -1);
 		add_filho($$, criar_nodo("write", -1));
@@ -392,8 +365,6 @@ arguments_list:
 		pilhaArgumentos = pilha_push(pilhaArgumentos, pilhaValores->elemento->val);
 		pilhaValores = pilha_pop(pilhaValores);
 
-		criar_simbolo($2);
-
 		$$ = criar_nodo("arguments list", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("comma", -1));
@@ -409,10 +380,6 @@ arguments_list:
 
 conditional: 
 	T_If T_LeftParentheses expression T_RightParentheses statements else {
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
-
 		$$ = criar_nodo("conditional", -1);
 		add_filho($$, criar_nodo("if", -1));
 		add_filho($$, criar_nodo("left parentheses", -1));
@@ -422,10 +389,6 @@ conditional:
 		add_filho($$, $6);
 	}
 	| T_If T_LeftParentheses expression T_RightParentheses statements {
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
-
 		$$ = criar_nodo("conditional", -1);
 		add_filho($$, criar_nodo("if", -1));
 		add_filho($$, criar_nodo("left parentheses", -1));
@@ -436,17 +399,11 @@ conditional:
 
 else:
 	T_Else conditional {
-		criar_simbolo($1);
-
 		$$ = criar_nodo("else", -1);
 		add_filho($$, criar_nodo("else", -1));
 		add_filho($$, $2);
 	}
 	| T_Else T_LeftBrace statements T_RightBrace {
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
-
 		$$ = criar_nodo("else", -1);
 		add_filho($$, criar_nodo("else", -1));
 		add_filho($$, criar_nodo("left brace", -1));
@@ -456,12 +413,6 @@ else:
 
 loop:
 	T_While T_LeftParentheses expression T_RightParentheses T_LeftBrace statements T_RightBrace {
-		criar_simbolo($1);
-		criar_simbolo($2);
-		criar_simbolo($4);
-		criar_simbolo($5);
-		criar_simbolo($7);
-
 		$$ = criar_nodo("loop", -1);
 		add_filho($$, criar_nodo("while", -1));
 		add_filho($$, criar_nodo("left parentheses", -1));
@@ -474,9 +425,6 @@ loop:
 
 return:
 	T_Return value T_Semicolon {
-		criar_simbolo($1);
-		criar_simbolo($3);
-
 		Simbolo *simbolo = buscar_simbolo_id(pilhaValores->elemento->val);
 		retornoFuncao = malloc(strlen(simbolo->tipo) + 1);
 		strcpy(retornoFuncao, simbolo->tipo);
@@ -537,9 +485,6 @@ array_access:
 			if (posicao < 0 || posicao >= simbolo->vetorLimite) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: posição %d inválida no vetor %s\n", $1.linha, posicao, $1.lexema);
 			}
-
-			criar_simbolo($2);
-			criar_simbolo($4);
 		}
 
 		$$ = criar_nodo("array access", -1);
@@ -551,7 +496,6 @@ array_access:
 
 variables_declaration:
 	type_identifier identifiers_list T_Semicolon {
-		criar_simbolo($3);
 		char *tipo = buscar_tipo($1);
 		armazenarTipos($2, tipo);
 
@@ -569,7 +513,6 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
-			criar_simbolo($2);
 		}
 		
 		$$ = criar_nodo("identifiers list", -1);
@@ -588,11 +531,6 @@ identifiers_list:
 			definir_tipo(id, "[]");
 			simbolo = buscar_simbolo_id(id);
 			simbolo->vetorLimite = atoi($3.lexema);
-
-			criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
-			criar_simbolo($5);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -614,10 +552,6 @@ identifiers_list:
 			definir_tipo(id, "[]");
 			simbolo = buscar_simbolo_id(id);
 			simbolo->vetorLimite = atoi($3.lexema);
-
-			criar_simbolo($2);
-			criar_simbolo($3);
-			criar_simbolo($4);
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -654,16 +588,12 @@ expression:
 			}
 		}
 
-		criar_simbolo($2);
-
 		$$ = criar_nodo("expression", -1);
 		add_filho($$, criar_nodo("identifier", id));
 		add_filho($$, criar_nodo("assignment", -1));
 		add_filho($$, $3);
 	}
 	| array_access T_assignment expression {
-		criar_simbolo($2);
-
 		$$ = criar_nodo("expression", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("assignment", -1));
@@ -683,10 +613,6 @@ expression:
 			if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
 			}
-
-			criar_simbolo($1);
-			criar_simbolo($2);
-			criar_simbolo($4);
 		}
 
 		$$ = criar_nodo("list expression", -1);
@@ -698,8 +624,6 @@ expression:
 
 expression_1:
 	expression_2 T_Op1 expression_1 {
-		criar_simbolo($2);
-
 		$$ = criar_nodo("expression 1", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("operation 1", -1));
@@ -712,8 +636,6 @@ expression_1:
 
 expression_2:
 	expression_3 T_Op2 expression_2 {
-		criar_simbolo($2);
-
 		$$ = criar_nodo("expression 2", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("operation 2", -1));
@@ -726,16 +648,12 @@ expression_2:
 
 expression_3:
 	value T_Op3 expression_3 {
-		criar_simbolo($2);
-
 		$$ = criar_nodo("expression 3", -1);
 		add_filho($$, $1);
 		add_filho($$, criar_nodo("operation 3", -1));
 		add_filho($$, $3);
 	}
 	| T_UOp value {
-		criar_simbolo($1);
-
 		$$ = criar_nodo("expression 3", -1);
 		add_filho($$, criar_nodo("unary operation", -1));
 		add_filho($$, $2);
