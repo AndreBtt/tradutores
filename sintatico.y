@@ -16,6 +16,7 @@ extern Pilha *pilhaParametros;
 extern Pilha *pilhaArgumentos;
 extern Pilha *pilhaValores;
 extern char *retornoFuncao;
+extern char *codeTAC;
 extern char erroGlobal[2000000];
 
 %}
@@ -130,6 +131,9 @@ function_definition:
 				simbolo->parametros->tamanho = pilhaParametros->tamanho;
 				pilhaParametros = NULL;
 			}
+
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC, "%s:\n", $2.lexema);
 		}
 
 		$$ = criar_nodo("function definition", -1);
@@ -580,6 +584,7 @@ expression:
 		if (simbolo == NULL) {
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
+			id = simbolo->id;
 			int falha = verificarTipo($3, simbolo->tipo);
 			if (falha == 1) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);

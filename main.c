@@ -7,6 +7,7 @@ int linha = 1;
 int coluna, errors, escopo = 0;
 char erroGlobal[2000000];
 int erroSintatico = 0;
+char *codeTAC;
 
 Nodo *raiz;
 Pilha *pilhaParametros;
@@ -21,9 +22,10 @@ int main() {
 	if (erroGlobal[0]) {
 		printf("%s", erroGlobal);
 	} else {
-		mostrar_arvore(raiz, 1);
+		printf("%s\n", codeTAC);
+		// mostrar_arvore(raiz, 1);
 		liberar_arvore(raiz);
-		mostrar_tabela();
+		// mostrar_tabela();
 		liberar_tabela();
 	}
 

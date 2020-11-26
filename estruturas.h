@@ -17,6 +17,7 @@ char* buscar_token(char*);
 Pilha* pilha_push(Pilha*, int);
 Pilha* pilha_pop(Pilha*);
 Pilha* pilha_libera(Pilha*);
+char* alocar_memoria(char*);
 
 struct Token {
 	int linha, coluna, escopo;

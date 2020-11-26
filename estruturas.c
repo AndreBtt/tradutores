@@ -60,3 +60,16 @@ Pilha* pilha_libera(Pilha* p) {
 		p = pilha_pop(p);
 	}
 }
+
+char* alocar_memoria(char *s) {
+	char *ss = (char*) realloc(s, 50 * sizeof(char));
+	if (ss != NULL) {
+		s = ss;
+	}	else {
+		free(s);
+		printf("Error (re)allocating memory\n");
+		exit(1);
+	}
+
+	return s;
+}
