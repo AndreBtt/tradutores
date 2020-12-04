@@ -18,7 +18,7 @@ extern Pilha *pilhaArgumentos;
 extern Pilha *pilhaValores;
 extern char *retornoFuncao;
 extern char *codeTAC;
-extern char operacaoTAC;
+extern int novoTemporario;
 extern char erroGlobal[2000000];
 
 %}
@@ -47,7 +47,6 @@ extern char erroGlobal[2000000];
 %token <token> T_Op1 
 %token <token> T_Op2
 %token <token> T_Op3
-%token <token> T_UOp
 %token <token> T_assignment
 %token <token> T_LeftBrace
 %token <token> T_RightBrace
@@ -440,6 +439,8 @@ return:
 
 value:
 	T_Id {
+		$$ = criar_nodo("value", -1);
+
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo == NULL) {
@@ -447,14 +448,13 @@ value:
 		} else {
 			id = simbolo->id;
 			pilhaValores = pilha_push(pilhaValores, id);
+			$$->temporario = simbolo->temporario;
 		}
 
-		$$ = criar_nodo("value", -1);
 		add_filho($$, criar_nodo($1.lexema, id));
 	}
 	| number {
-		$$ = criar_nodo("value", -1);
-		add_filho($$, $1);
+		$$ = $1;
 	}
 	| array_access {
 		$$ = criar_nodo("value", -1);
@@ -516,6 +516,10 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
+			
+			simbolo = buscar_simbolo_id(id);
+			simbolo->temporario = novoTemporario;
+			novoTemporario++;
 
 			$$ = criar_nodo("identifiers list", -1);
 			add_filho($$, criar_nodo($1.lexema, id));
@@ -535,6 +539,9 @@ identifiers_list:
 			definir_tipo(id, "[]");
 			simbolo = buscar_simbolo_id(id);
 			simbolo->vetorLimite = atoi($3.lexema);
+
+			simbolo->temporario = novoTemporario;
+			novoTemporario++;
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -556,6 +563,9 @@ identifiers_list:
 			definir_tipo(id, "[]");
 			simbolo = buscar_simbolo_id(id);
 			simbolo->vetorLimite = atoi($3.lexema);
+
+			simbolo->temporario = novoTemporario;
+			novoTemporario++;
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -573,6 +583,9 @@ identifiers_list:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $1.linha, $1.lexema, simbolo->linha);
 		} else {
 			id = criar_simbolo($1);
+			simbolo = buscar_simbolo_id(id);
+			simbolo->temporario = novoTemporario;
+			novoTemporario++;
 		}
 
 		$$ = criar_nodo("identifiers list", -1);
@@ -581,6 +594,8 @@ identifiers_list:
 
 expression:
 	T_Id T_assignment expression {
+		$$ = criar_nodo("expression", -1);
+
 		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
 		int id = -1;
 		if (simbolo == NULL) {
@@ -591,15 +606,16 @@ expression:
 			if (falha == 1) {
 				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, simbolo->tipo);
 			}
+
+			$$->temporario = simbolo->temporario;
+
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "mov %d, *%d\n", simbolo->temporario, $3->temporario);
 		}
 
-		$$ = criar_nodo("expression", -1);
 		add_filho($$, criar_nodo($1.lexema, id));
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
-
-		operacaoTAC = '=';
-		tac_expressao(id, $3);
 	}
 	| array_access T_assignment expression {
 		$$ = criar_nodo("expression", -1);
@@ -608,8 +624,7 @@ expression:
 		add_filho($$, $3);
 	}
 	| expression_1 {
-		$$ = criar_nodo("expression", -1);
-		add_filho($$, $1);
+		$$ = $1;
 	}
 	| T_ListOperation T_LeftParentheses T_Id T_RightParentheses {
 		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
@@ -633,42 +648,73 @@ expression:
 expression_1:
 	expression_2 T_Op1 expression_1 {
 		$$ = criar_nodo("expression 1", -1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		if ($2.lexema[0] == '<') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "%s $%d, $%d, $%d\n", $2.lexema[1] == '=' ? "sleq" : "slt", $$->temporario, $1->temporario, $3->temporario);
+		} else if ($2.lexema[0] == '>') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "%s $%d, $%d, $%d\n", $2.lexema[1] == '=' ? "sleq" : "slt", $$->temporario, $3->temporario, $1->temporario);
+		} else if ($2.lexema[0] == '=') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "seq $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		}
+
 		add_filho($$, $1);
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
 	} 
 	| expression_2 {
-		$$ = criar_nodo("expression 1", -1);
-		add_filho($$, $1);
+		$$ = $1;
 	}
 
 expression_2:
 	expression_3 T_Op2 expression_2 {
 		$$ = criar_nodo("expression 2", -1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		if ($2.lexema[0] == '+') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "add $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		} else if ($2.lexema[0] == '-') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "sub $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		}
+
 		add_filho($$, $1);
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
 	}
 	| expression_3 {
-		$$ = criar_nodo("expression 2", -1);
-		add_filho($$, $1);
+		$$ = $1;
 	}
 
 expression_3:
-	value T_Op3 expression_3 {
+	expression_3 T_Op3 value {
 		$$ = criar_nodo("expression 3", -1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		if ($2.lexema[0] == '*') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "mul $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		} else if ($2.lexema[0] == '/') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "div $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		}
+
 		add_filho($$, $1);
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
 	}
-	| T_UOp value {
-		$$ = criar_nodo("expression 3", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, $2);
-	}
 	| value {
-		$$ = criar_nodo("expression 3", -1);
-		add_filho($$, $1);
+		$$ = $1;
 	}
 
 number:
@@ -681,6 +727,13 @@ number:
 		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number", -1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "mov %d, %s\n", $$->temporario, simbolo->lexema);
+
 		add_filho($$, criar_nodo($1.lexema, id));
 	}
 	| T_Float {
@@ -692,6 +745,13 @@ number:
 		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("number", -1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "mov %d, %s\n", $$->temporario, simbolo->lexema);
+
 		add_filho($$, criar_nodo($1.lexema, id));
 	}
 

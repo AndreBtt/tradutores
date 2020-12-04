@@ -15,6 +15,7 @@ int criar_simbolo(Token t) {
 	simbolo->coluna = t.coluna;
 	simbolo->proximo = NULL;
 	simbolo->tipo = NULL;
+	simbolo->temporario = -1;
 	simbolo->vetorLimite = -1;
 	simbolo->parametros = (Pilha*) malloc(sizeof(Pilha));
 	simbolo->parametros->elemento = NULL;

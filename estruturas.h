@@ -31,6 +31,7 @@ struct ListaNodo {
 
 struct Nodo {
 	ListaNodo *filhos;
+	int temporario;
 	char* tipo;
 	int id;
 };
@@ -38,7 +39,7 @@ struct Nodo {
 struct Simbolo {
 	char token[20];
 	char lexema[34];
-	int id, linha, coluna, escopo;
+	int id, linha, coluna, escopo, temporario;
 	char *tipo;
 	int funcao;
 	int vetorLimite;

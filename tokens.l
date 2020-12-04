@@ -27,8 +27,6 @@ OP2 "+"|"-"|'^'|'|'|&|&&|"||"
 
 OP3 "*"|"/"
 
-UOP !|~
-
 BASIC_TYPE int|float|bool
 
 BOOL true|false
@@ -217,16 +215,6 @@ IN readInt|readFloat
   yylval->token.escopo = escopo;
   coluna += yyleng;
   return T_Op3;
-}
-
-{UOP} {
-  yylval->token.lexema = (char*) malloc(sizeof(char) * (1 + strlen(yytext)));
-  strcpy(yylval->token.lexema, yytext);
-  yylval->token.linha = linha;
-  yylval->token.coluna = coluna;
-  yylval->token.escopo = escopo;
-  coluna += yyleng;
-  return T_UOp;
 }
 
 "=" {

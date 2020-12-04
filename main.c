@@ -15,6 +15,7 @@ Pilha *pilhaParametros;
 Pilha *pilhaArgumentos;
 Pilha *pilhaValores;
 char *retornoFuncao;
+int novoTemporario = 0;
 
 int main() {
 	yyparse();
@@ -26,7 +27,7 @@ int main() {
 		printf("%s\n", codeTAC);
 		// mostrar_arvore(raiz, 1);
 		liberar_arvore(raiz);
-		mostrar_tabela();
+		// mostrar_tabela();
 		liberar_tabela();
 	}
 
