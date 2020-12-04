@@ -8,6 +8,7 @@ int coluna, errors, escopo = 0;
 char erroGlobal[2000000];
 int erroSintatico = 0;
 char *codeTAC;
+char operacaoTAC;
 
 Nodo *raiz;
 Pilha *pilhaParametros;
@@ -25,7 +26,7 @@ int main() {
 		printf("%s\n", codeTAC);
 		// mostrar_arvore(raiz, 1);
 		liberar_arvore(raiz);
-		// mostrar_tabela();
+		mostrar_tabela();
 		liberar_tabela();
 	}
 

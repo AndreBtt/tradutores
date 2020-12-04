@@ -9,6 +9,7 @@
 #include "estruturas.h"
 #include "tabela_simbolos.h"
 #include "arvore.h"
+#include "tac.h"
 
 extern int yylex();
 extern Nodo *raiz;
@@ -17,6 +18,7 @@ extern Pilha *pilhaArgumentos;
 extern Pilha *pilhaValores;
 extern char *retornoFuncao;
 extern char *codeTAC;
+extern char operacaoTAC;
 extern char erroGlobal[2000000];
 
 %}
@@ -133,7 +135,7 @@ function_definition:
 			}
 
 			codeTAC = alocar_memoria(codeTAC);
-			sprintf(codeTAC, "%s:\n", $2.lexema);
+			sprintf(codeTAC + strlen(codeTAC), "%s:\n", $2.lexema);
 		}
 
 		$$ = criar_nodo("function definition", -1);
@@ -595,6 +597,9 @@ expression:
 		add_filho($$, criar_nodo($1.lexema, id));
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
+
+		operacaoTAC = '=';
+		tac_expressao(id, $3);
 	}
 	| array_access T_assignment expression {
 		$$ = criar_nodo("expression", -1);
