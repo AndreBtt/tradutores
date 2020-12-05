@@ -119,19 +119,22 @@ function_definition:
 		ListaNodo *ultimoFilho = $1->filhos;
 		while (ultimoFilho->proximo) ultimoFilho = ultimoFilho->proximo;
 		int id = ultimoFilho->val->id;
-		Simbolo *simbolo = buscar_simbolo_id(id);
-		simbolo->funcao = 1;
 
-		if (retornoFuncao == NULL) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", simbolo->linha, simbolo->tipo);
-		} else if (conversaoTipo(simbolo->tipo, retornoFuncao) == 1) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retornado tipo %s\n", simbolo->linha, simbolo->tipo, retornoFuncao);
-		}
+		if (id != -1) {
+			Simbolo *simbolo = buscar_simbolo_id(id);
+			simbolo->funcao = 1;
 
-		if (pilhaParametros != NULL) {
-			simbolo->parametros->elemento = pilhaParametros->elemento;
-			simbolo->parametros->tamanho = pilhaParametros->tamanho;
-			pilhaParametros = NULL;
+			if (retornoFuncao == NULL) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", simbolo->linha, simbolo->tipo);
+			} else if (conversaoTipo(simbolo->tipo, retornoFuncao) == 1) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retornado tipo %s\n", simbolo->linha, simbolo->tipo, retornoFuncao);
+			}
+
+			if (pilhaParametros != NULL) {
+				simbolo->parametros->elemento = pilhaParametros->elemento;
+				simbolo->parametros->tamanho = pilhaParametros->tamanho;
+				pilhaParametros = NULL;
+			}
 		}
 
 		$$ = criar_nodo("function definition", -1);
@@ -153,11 +156,11 @@ function_declaration:
 
 			codeTAC = alocar_memoria(codeTAC);
 			sprintf(codeTAC + strlen(codeTAC), "%s:\n", $2.lexema);
-
-			$$ = criar_nodo("function declaration", -1);
-			add_filho($$, $1);
-			add_filho($$, criar_nodo($2.lexema, id));
 		}
+
+		$$ = criar_nodo("function declaration", -1);
+		add_filho($$, $1);
+		add_filho($$, criar_nodo($2.lexema, id));
 	}
 
 function_body:
