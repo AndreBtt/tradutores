@@ -77,6 +77,8 @@ extern char erroGlobal[2000000];
 %type <nodo> statement
 %type <nodo> return
 %type <nodo> loop
+%type <nodo> conditional_expression
+%type <nodo> while
 %type <nodo> read
 %type <nodo> write
 %type <nodo> parameters_list
@@ -388,7 +390,7 @@ conditional:
 
 		codeTAC = alocar_memoria(codeTAC);
 		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $1->label);
-		
+
 		add_filho($$, $1);
 		add_filho($$, $2);
 		add_filho($$, $3);
@@ -404,19 +406,13 @@ conditional:
 	}
 
 if:
-	T_If T_LeftParentheses expression T_RightParentheses {
+	T_If conditional_expression {
 		$$ = criar_nodo("if", -1);
 
-		$$->label = novoLabel;
-		novoLabel++;
-
-		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "brz __%d, $%d\n", $$->label, $3->temporario);
+		$$->label = $2->label;
 
 		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, criar_nodo($2.lexema, -1));
-		add_filho($$, $3);
-		add_filho($$, criar_nodo($4.lexema, -1));
+		add_filho($$, $2);
 	}
 
 else:
@@ -434,15 +430,47 @@ else:
 	}
 
 loop:
-	T_While T_LeftParentheses expression T_RightParentheses T_LeftBrace statements T_RightBrace {
+	while conditional_expression T_LeftBrace statements T_RightBrace {
 		$$ = criar_nodo("loop", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, criar_nodo($2.lexema, -1));
-		add_filho($$, $3);
-		add_filho($$, criar_nodo($4.lexema, -1));
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "jump __%d\n", $1->label);
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $2->label);
+
+		add_filho($$, $1);
+		add_filho($$, $2);
+		add_filho($$, criar_nodo($3.lexema, -1));
+		add_filho($$, $4);
 		add_filho($$, criar_nodo($5.lexema, -1));
-		add_filho($$, $6);
-		add_filho($$, criar_nodo($7.lexema, -1));
+	}
+
+while:
+	T_While {
+		$$ = criar_nodo("while", -1);
+
+		// label de inicio
+		$$->label = novoLabel;
+		novoLabel++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $$->label);
+	}
+
+conditional_expression:
+	T_LeftParentheses expression T_RightParentheses {
+		$$ = criar_nodo("conditional expression", -1);
+
+		// label de fim
+		$$->label = novoLabel;
+		novoLabel++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "brz __%d, $%d\n", $$->label, $2->temporario);
+
+		add_filho($$, criar_nodo($1.lexema, -1));
+		add_filho($$, criar_nodo($3.lexema, -1));
 	}
 
 return:
