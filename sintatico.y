@@ -301,17 +301,44 @@ statement:
 
 read:
 	T_Read T_Id T_Semicolon {
-		int id = criar_simbolo($2);
+		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
+		int id = -1;
+		if (simbolo == NULL) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $2.linha, $2.lexema);
+		} else {
+			codeTAC = alocar_memoria(codeTAC);
+			if (strcmp($1.lexema, "readInt") == 0) {
+				if (strcmp(simbolo->tipo, "int") == 0) {
+					sprintf(codeTAC + strlen(codeTAC), "scani $%d\n", simbolo->temporario);
+				} else {
+					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: comando de leitura espera receber variável do tipo int\n", $2.linha);
+				}
+			} else {
+				if (strcmp(simbolo->tipo, "float") == 0) {
+					sprintf(codeTAC + strlen(codeTAC), "scanf $%d\n", simbolo->temporario);
+				} else {
+					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: comando de leitura espera receber variável do tipo float\n", $2.linha);
+				}
+			}
+		}
 
 		$$ = criar_nodo("read", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
 		add_filho($$, criar_nodo($2.lexema, id));
 		add_filho($$, criar_nodo($3.lexema, -1));
+		
 	}
 
 write:
 	T_Write T_Id T_Semicolon {
-		int id = criar_simbolo($2);
+		Simbolo *simbolo = buscar_simbolo($2.lexema, $2.escopo);
+		int id = -1;
+		if (simbolo == NULL) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $2.linha, $2.lexema);
+		} else {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "print $%d\n", simbolo->temporario);
+		}
 
 		$$ = criar_nodo("write", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
