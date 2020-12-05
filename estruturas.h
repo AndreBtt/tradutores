@@ -32,6 +32,7 @@ struct ListaNodo {
 struct Nodo {
 	ListaNodo *filhos;
 	int temporario;
+	int label;
 	char* tipo;
 	int id;
 };

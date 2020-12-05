@@ -9,6 +9,7 @@ Nodo* criar_nodo(char *tipo, int id) {
 	novo->id = id;
 	novo->tipo = malloc(strlen(tipo) + 1);
 	novo->temporario = -1;
+	novo->label = -1;
 	strcpy(novo->tipo, tipo);
 	return novo;
 }

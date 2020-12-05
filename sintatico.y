@@ -19,6 +19,7 @@ extern Pilha *pilhaValores;
 extern char *retornoFuncao;
 extern char *codeTAC;
 extern int novoTemporario;
+extern int novoLabel;
 extern char erroGlobal[2000000];
 
 %}
@@ -65,6 +66,7 @@ extern char erroGlobal[2000000];
 %type <nodo> function_call
 %type <nodo> array_access
 %type <nodo> conditional
+%type <nodo> if
 %type <nodo> identifiers_list
 %type <nodo> variables_declaration
 %type <nodo> function_definition
@@ -381,22 +383,40 @@ arguments_list:
 	}
 
 conditional: 
-	T_If T_LeftParentheses expression T_RightParentheses statements else {
+	if statements else {
 		$$ = criar_nodo("conditional", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, criar_nodo($2.lexema, -1));
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $1->label);
+		
+		add_filho($$, $1);
+		add_filho($$, $2);
 		add_filho($$, $3);
-		add_filho($$, criar_nodo($4.lexema, -1));
-		add_filho($$, $5);
-		add_filho($$, $6);
 	}
-	| T_If T_LeftParentheses expression T_RightParentheses statements {
+	| if statements {
 		$$ = criar_nodo("conditional", -1);
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $1->label);
+
+		add_filho($$, $1);
+		add_filho($$, $2);
+	}
+
+if:
+	T_If T_LeftParentheses expression T_RightParentheses {
+		$$ = criar_nodo("if", -1);
+
+		$$->label = novoLabel;
+		novoLabel++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "brz __%d, $%d\n", $$->label, $3->temporario);
+
 		add_filho($$, criar_nodo($1.lexema, -1));
 		add_filho($$, criar_nodo($2.lexema, -1));
 		add_filho($$, $3);
 		add_filho($$, criar_nodo($4.lexema, -1));
-		add_filho($$, $5);
 	}
 
 else:
@@ -684,6 +704,12 @@ expression_2:
 		} else if ($2.lexema[0] == '-') {
 			codeTAC = alocar_memoria(codeTAC);
 			sprintf(codeTAC + strlen(codeTAC), "sub $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		} else if ($2.lexema[0] == '&') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "and $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
+		} else if ($2.lexema[0] == '|') {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "or $%d, $%d, $%d\n", $$->temporario, $1->temporario, $3->temporario);
 		}
 
 		add_filho($$, $1);
