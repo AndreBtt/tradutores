@@ -70,6 +70,7 @@ extern char erroGlobal[2000000];
 %type <nodo> identifiers_list
 %type <nodo> variables_declaration
 %type <nodo> function_definition
+%type <nodo> function_declaration
 %type <nodo> function_body
 %type <nodo> parameters
 %type <nodo> program
@@ -113,7 +114,34 @@ program:
 	}
 
 function_definition:
-	type_identifier T_Id parameters function_body {
+	function_declaration parameters function_body {
+
+		ListaNodo *ultimoFilho = $1->filhos;
+		while (ultimoFilho->proximo) ultimoFilho = ultimoFilho->proximo;
+		int id = ultimoFilho->val->id;
+		Simbolo *simbolo = buscar_simbolo_id(id);
+		simbolo->funcao = 1;
+
+		if (retornoFuncao == NULL) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", simbolo->linha, simbolo->tipo);
+		} else if (conversaoTipo(simbolo->tipo, retornoFuncao) == 1) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retornado tipo %s\n", simbolo->linha, simbolo->tipo, retornoFuncao);
+		}
+
+		if (pilhaParametros != NULL) {
+			simbolo->parametros->elemento = pilhaParametros->elemento;
+			simbolo->parametros->tamanho = pilhaParametros->tamanho;
+			pilhaParametros = NULL;
+		}
+
+		$$ = criar_nodo("function definition", -1);
+		add_filho($$, $1);
+		add_filho($$, $2);
+		add_filho($$, $3);
+	}
+
+function_declaration:
+	type_identifier T_Id {
 		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
 		int id = -1;
 		if (simbolo != NULL) {
@@ -123,29 +151,13 @@ function_definition:
 			char *tipo = buscar_tipo($1);
 			definir_tipo(id, tipo);
 
-			if (retornoFuncao == NULL) {
-				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e nada foi retornado\n", $2.linha, tipo);
-			} else if (conversaoTipo(tipo, retornoFuncao) == 1) {
-				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função espera retorno do tipo %s e foi retornado tipo %s\n", $2.linha, tipo, retornoFuncao);
-			}
-
-			simbolo = buscar_simbolo_id(id);
-			simbolo->funcao = 1;
-			if (pilhaParametros != NULL) {
-				simbolo->parametros->elemento = pilhaParametros->elemento;
-				simbolo->parametros->tamanho = pilhaParametros->tamanho;
-				pilhaParametros = NULL;
-			}
-
 			codeTAC = alocar_memoria(codeTAC);
 			sprintf(codeTAC + strlen(codeTAC), "%s:\n", $2.lexema);
-		}
 
-		$$ = criar_nodo("function definition", -1);
-		add_filho($$, $1);
-		add_filho($$, criar_nodo($2.lexema, id));
-		add_filho($$, $3);
-		add_filho($$, $4);
+			$$ = criar_nodo("function declaration", -1);
+			add_filho($$, $1);
+			add_filho($$, criar_nodo($2.lexema, id));
+		}
 	}
 
 function_body:
