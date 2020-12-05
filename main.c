@@ -17,6 +17,7 @@ Pilha *pilhaValores;
 char *retornoFuncao;
 int novoTemporario = 0;
 int novoLabel = 0;
+int numeroParametro = 0;
 
 int main() {
 	yyparse();

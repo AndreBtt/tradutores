@@ -20,6 +20,7 @@ extern char *retornoFuncao;
 extern char *codeTAC;
 extern int novoTemporario;
 extern int novoLabel;
+extern int numeroParametro;
 extern char erroGlobal[2000000];
 
 %}
@@ -66,7 +67,6 @@ extern char erroGlobal[2000000];
 %type <nodo> function_call
 %type <nodo> array_access
 %type <nodo> conditional
-%type <nodo> if
 %type <nodo> identifiers_list
 %type <nodo> variables_declaration
 %type <nodo> function_definition
@@ -115,6 +115,7 @@ program:
 
 function_definition:
 	function_declaration parameters function_body {
+		numeroParametro = 0;
 
 		ListaNodo *ultimoFilho = $1->filhos;
 		while (ultimoFilho->proximo) ultimoFilho = ultimoFilho->proximo;
@@ -206,16 +207,18 @@ parameters_list:
 
 parameter:
 	type_identifier T_Id {
-		Simbolo *simbolo = buscar_simbolo_escopo($2.lexema, $2.escopo);
-		int id = -1;
-		if (simbolo != NULL) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: redeclaração da variável %s, primeira ocorrência na linha %d\n", $2.linha, $2.lexema, simbolo->linha);
-		} else {
-			char *tipo = buscar_tipo($1);
-			id = criar_simbolo($2);
-			definir_tipo(id, tipo);
-			pilhaValores = pilha_push(pilhaValores, id);
-		}
+		int id = criar_simbolo($2);
+		char *tipo = buscar_tipo($1);
+		definir_tipo(id, tipo);
+		
+		Simbolo *simbolo = buscar_simbolo_id(id);
+		simbolo->temporario = novoTemporario;
+		novoTemporario++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "mov $%d, #%d\n", simbolo->temporario, numeroParametro++);
+
+		pilhaValores = pilha_push(pilhaValores, id);
 
 		$$ = criar_nodo("parameter", -1);
 		add_filho($$, $1);
@@ -376,11 +379,17 @@ function_call:
 					if (conversaoTipo(parametroTipo, argumentoTipo) == 1) {
 						sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: argumento número %d da função %s é do tipo %s e foi chamado passando o tipo %s\n", $1.linha, numeroArgumento, $1.lexema, parametroTipo, argumentoTipo);
 					}
+
+					codeTAC = alocar_memoria(codeTAC);
+					sprintf(codeTAC + strlen(codeTAC), "param $%d\n", argumento->temporario);
 				
 					parametros = parametros->proximo;
 					argumentos = argumentos->proximo;
 					numeroArgumento++;
 				}
+
+				codeTAC = alocar_memoria(codeTAC);
+				sprintf(codeTAC + strlen(codeTAC), "call %s, %d\n", $1.lexema, pilhaArgumentos->tamanho);
 			}
 		}
 
@@ -427,34 +436,26 @@ arguments_list:
 	}
 
 conditional: 
-	if statements else {
+	T_If conditional_expression statements else {
 		$$ = criar_nodo("conditional", -1);
 
 		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $1->label);
-
-		add_filho($$, $1);
-		add_filho($$, $2);
-		add_filho($$, $3);
-	}
-	| if statements {
-		$$ = criar_nodo("conditional", -1);
-
-		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $1->label);
-
-		add_filho($$, $1);
-		add_filho($$, $2);
-	}
-
-if:
-	T_If conditional_expression {
-		$$ = criar_nodo("if", -1);
-
-		$$->label = $2->label;
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $2->label);
 
 		add_filho($$, criar_nodo($1.lexema, -1));
 		add_filho($$, $2);
+		add_filho($$, $3);
+		add_filho($$, $4);
+	}
+	| T_If conditional_expression statements {
+		$$ = criar_nodo("conditional", -1);
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $2->label);
+
+		add_filho($$, criar_nodo($1.lexema, -1));
+		add_filho($$, $2);
+		add_filho($$, $3);
 	}
 
 else:
@@ -520,6 +521,9 @@ return:
 		Simbolo *simbolo = buscar_simbolo_id(pilhaValores->elemento->val);
 		retornoFuncao = malloc(strlen(simbolo->tipo) + 1);
 		strcpy(retornoFuncao, simbolo->tipo);
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "return $%d\n", $2->temporario);
 
 		$$ = criar_nodo("return", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
@@ -700,7 +704,7 @@ expression:
 			$$->temporario = simbolo->temporario;
 
 			codeTAC = alocar_memoria(codeTAC);
-			sprintf(codeTAC + strlen(codeTAC), "mov %d, *%d\n", simbolo->temporario, $3->temporario);
+			sprintf(codeTAC + strlen(codeTAC), "mov $%d, *%d\n", simbolo->temporario, $3->temporario);
 		}
 
 		add_filho($$, criar_nodo($1.lexema, id));
@@ -827,8 +831,10 @@ number:
 		$$->temporario = novoTemporario;
 		novoTemporario++;
 
+		simbolo->temporario = $$->temporario;
+
 		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "mov %d, %s\n", $$->temporario, simbolo->lexema);
+		sprintf(codeTAC + strlen(codeTAC), "mov $%d, %s\n", $$->temporario, simbolo->lexema);
 
 		add_filho($$, criar_nodo($1.lexema, id));
 	}
@@ -845,8 +851,10 @@ number:
 		$$->temporario = novoTemporario;
 		novoTemporario++;
 
+		simbolo->temporario = $$->temporario;
+
 		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "mov %d, %s\n", $$->temporario, simbolo->lexema);
+		sprintf(codeTAC + strlen(codeTAC), "mov $%d, %s\n", $$->temporario, simbolo->lexema);
 
 		add_filho($$, criar_nodo($1.lexema, id));
 	}
