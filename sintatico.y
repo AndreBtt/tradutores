@@ -86,7 +86,6 @@ extern char erroGlobal[2000000];
 %type <nodo> parameter
 %type <nodo> arguments_list
 %type <nodo> start
-%type <nodo> else
 
 %start start
 
@@ -340,7 +339,7 @@ write:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $2.linha, $2.lexema);
 		} else {
 			codeTAC = alocar_memoria(codeTAC);
-			sprintf(codeTAC + strlen(codeTAC), "print $%d\n", simbolo->temporario);
+			sprintf(codeTAC + strlen(codeTAC), "println $%d\n", simbolo->temporario);
 		}
 
 		$$ = criar_nodo("write", -1);
@@ -436,7 +435,7 @@ arguments_list:
 	}
 
 conditional: 
-	T_If conditional_expression statements else {
+	T_If conditional_expression statements {
 		$$ = criar_nodo("conditional", -1);
 
 		codeTAC = alocar_memoria(codeTAC);
@@ -445,31 +444,6 @@ conditional:
 		add_filho($$, criar_nodo($1.lexema, -1));
 		add_filho($$, $2);
 		add_filho($$, $3);
-		add_filho($$, $4);
-	}
-	| T_If conditional_expression statements {
-		$$ = criar_nodo("conditional", -1);
-
-		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "__%d:\n", $2->label);
-
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, $2);
-		add_filho($$, $3);
-	}
-
-else:
-	T_Else conditional {
-		$$ = criar_nodo("else", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, $2);
-	}
-	| T_Else T_LeftBrace statements T_RightBrace {
-		$$ = criar_nodo("else", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, criar_nodo($2.lexema, -1));
-		add_filho($$, $3);
-		add_filho($$, criar_nodo($4.lexema, -1));
 	}
 
 loop:
@@ -556,7 +530,12 @@ value:
 	}
 	| function_call {
 		$$ = criar_nodo("value", -1);
-		add_filho($$, $1);
+
+		$$->temporario = novoTemporario;
+		novoTemporario++;
+
+		codeTAC = alocar_memoria(codeTAC);
+		sprintf(codeTAC + strlen(codeTAC), "pop $%d\n", $$->temporario);
 	}
 	| T_Bool {
 		int id = criar_simbolo($1);
@@ -704,7 +683,7 @@ expression:
 			$$->temporario = simbolo->temporario;
 
 			codeTAC = alocar_memoria(codeTAC);
-			sprintf(codeTAC + strlen(codeTAC), "mov $%d, *%d\n", simbolo->temporario, $3->temporario);
+			sprintf(codeTAC + strlen(codeTAC), "mov $%d, $%d\n", simbolo->temporario, $3->temporario);
 		}
 
 		add_filho($$, criar_nodo($1.lexema, id));

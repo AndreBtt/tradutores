@@ -26,10 +26,16 @@ int main() {
 	if (erroGlobal[0]) {
 		printf("%s", erroGlobal);
 	} else {
-		printf("%s\n", codeTAC);
-		// mostrar_arvore(raiz, 1);
+		FILE *tac;
+		tac = fopen("programa.tac", "w+");
+		fprintf(tac, ".table\n");
+		fprintf(tac, ".code\n");
+		fprintf(tac, "%s", codeTAC);
+		fclose(tac);
+
+		mostrar_arvore(raiz, 1);
 		liberar_arvore(raiz);
-		// mostrar_tabela();
+		mostrar_tabela();
 		liberar_tabela();
 	}
 
