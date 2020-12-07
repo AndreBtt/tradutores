@@ -31,7 +31,7 @@ int main() {
 		FILE *tac;
 		tac = fopen("programa.tac", "w+");
 		fprintf(tac, ".table\n");
-		// fprintf(tac, "%s", tableTAC);
+		if (tableTAC) fprintf(tac, "%s", tableTAC);
 		fprintf(tac, ".code\n");
 		fprintf(tac, "%s", codeTAC);
 		fclose(tac);
