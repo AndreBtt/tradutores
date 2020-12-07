@@ -16,8 +16,10 @@ extern Nodo *raiz;
 extern Pilha *pilhaParametros;
 extern Pilha *pilhaArgumentos;
 extern Pilha *pilhaValores;
+extern Pilha *pilhaAtribuicao;
 extern char *retornoFuncao;
 extern char *codeTAC;
+extern char *tableTAC;
 extern int novoTemporario;
 extern int novoLabel;
 extern int numeroParametro;
@@ -85,6 +87,7 @@ extern char erroGlobal[2000000];
 %type <nodo> parameters_list
 %type <nodo> parameter
 %type <nodo> arguments_list
+%type <nodo> numbers_list
 %type <nodo> start
 
 %start start
@@ -717,6 +720,65 @@ expression:
 		add_filho($$, criar_nodo($3.lexema, id));
 		add_filho($$, criar_nodo($4.lexema, -1));
 	}
+	| T_Id T_assignment T_LeftBrace numbers_list T_RightBrace {
+		$$ = criar_nodo("expression", -1);
+
+		Simbolo *simbolo = buscar_simbolo($1.lexema, $1.escopo);
+		int id = -1;
+		if (simbolo == NULL) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
+		} else {
+			id = simbolo->id;
+			if (simbolo->tipo[0] != 'L') {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s deve ser do tipo List\n", $1.linha, $1.lexema);
+			}
+
+			simbolo->valores = pilha_libera(simbolo->valores);
+
+			PilhaElemento *atribuicoes = 	pilhaAtribuicao->elemento;		
+
+			char tipo[9];
+			if (simbolo->tipo[5] == 'i') strcpy(tipo, "int");
+			else strcpy(tipo, "float");
+
+			int falha = 0;
+			int i = 0;
+
+			tableTAC = alocar_memoria(tableTAC);
+			sprintf(tableTAC + strlen(tableTAC), "%s %s[%d] = {", tipo, $1.lexema, pilhaAtribuicao->tamanho);
+
+			while (atribuicoes != NULL) {
+				Simbolo* numero = buscar_simbolo_id(atribuicoes->val);
+				
+				if (falha == 0 && strcmp(tipo, "float") != 0 && strcmp(tipo, numero->tipo) != 0) {
+					falha = 1;
+					sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s espera receber valores do tipo %s\n", $1.linha, $1.lexema, tipo);
+				}
+
+				simbolo->valores = pilha_push(simbolo->valores, numero->id);
+	
+				tableTAC = alocar_memoria(tableTAC);
+				if (i == 0) sprintf(tableTAC + strlen(tableTAC), "%s", numero->lexema);
+				else sprintf(tableTAC + strlen(tableTAC), ", %s", numero->lexema);
+
+				atribuicoes = atribuicoes->proximo;
+				i++;
+			}
+			
+			pilhaAtribuicao = pilha_libera(pilhaAtribuicao);
+
+			sprintf(tableTAC + strlen(tableTAC), "}\n");
+
+			tableTAC = alocar_memoria(tableTAC);
+			sprintf(tableTAC + strlen(tableTAC), "int tamanho_lista_%s = %d\n", $1.lexema, i);
+		}
+
+		add_filho($$, criar_nodo($1.lexema, id));
+		add_filho($$, criar_nodo($2.lexema, -1));
+		add_filho($$, criar_nodo($3.lexema, -1));
+		add_filho($$, $4);
+		add_filho($$, criar_nodo($5.lexema, -1));
+	}
 
 expression_1:
 	expression_2 T_Op1 expression_1 {
@@ -793,6 +855,23 @@ expression_3:
 		add_filho($$, $3);
 	}
 	| value {
+		$$ = $1;
+	}
+
+numbers_list:
+	number T_Comma numbers_list {
+		pilhaAtribuicao = pilha_push(pilhaAtribuicao, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
+		$$ = criar_nodo("numberslist", -1);
+		add_filho($$, $1);
+		add_filho($$, criar_nodo($2.lexema, -1));
+		add_filho($$, $3);
+	}
+	| number {
+		pilhaAtribuicao = pilha_push(pilhaAtribuicao, pilhaValores->elemento->val);
+		pilhaValores = pilha_pop(pilhaValores);
+
 		$$ = $1;
 	}
 

@@ -8,12 +8,14 @@ int coluna, errors, escopo = 0;
 char erroGlobal[2000000];
 int erroSintatico = 0;
 char *codeTAC;
+char *tableTAC;
 char operacaoTAC;
 
 Nodo *raiz;
 Pilha *pilhaParametros;
 Pilha *pilhaArgumentos;
 Pilha *pilhaValores;
+Pilha *pilhaAtribuicao;
 char *retornoFuncao;
 int novoTemporario = 0;
 int novoLabel = 0;
@@ -29,6 +31,7 @@ int main() {
 		FILE *tac;
 		tac = fopen("programa.tac", "w+");
 		fprintf(tac, ".table\n");
+		// fprintf(tac, "%s", tableTAC);
 		fprintf(tac, ".code\n");
 		fprintf(tac, "%s", codeTAC);
 		fclose(tac);

@@ -18,6 +18,7 @@ int criar_simbolo(Token t) {
 	simbolo->temporario = -1;
 	simbolo->vetorLimite = -1;
 	simbolo->parametros = (Pilha*) malloc(sizeof(Pilha));
+	simbolo->valores = (Pilha*) malloc(sizeof(Pilha));
 	simbolo->parametros->elemento = NULL;
 	simbolo->parametros->tamanho = 0;
 	simbolo->escopo = t.escopo;

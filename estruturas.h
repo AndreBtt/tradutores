@@ -45,6 +45,7 @@ struct Simbolo {
 	int funcao;
 	int vetorLimite;
 	Pilha *parametros;
+	Pilha *valores;
 	Simbolo *proximo;
 };
 
