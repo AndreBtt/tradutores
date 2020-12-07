@@ -22,3 +22,9 @@ Arquivos de testes que possuem entradas incorretas estão nomeados com:
 * e1.c
 * e2.c
 * e3.c
+
+# Código de três endereços
+
+Uma vez executado o comando ```./semantico < caminho_para_arquivo_teste``` um arquivo chamado *programa.tac* será gerado contendo o programada traduzido para código de três endereços.
+
+Com isso para executar, é nescessário baixar o interpretador (https://github.com/lhsantos/tac) e executar o comando ```./tac <caminho>/programa.tac```

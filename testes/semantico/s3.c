@@ -15,7 +15,7 @@ int main() {
     int var;
     var = 9;
     imprimir(var);
-  } else {
+
     int vari;
     vari = 3;
     if (vari == 3) {
