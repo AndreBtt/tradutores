@@ -20,6 +20,7 @@ extern Pilha *pilhaAtribuicao;
 extern char *retornoFuncao;
 extern char *codeTAC;
 extern char *tableTAC;
+extern char *funcaoAtual;
 extern int novoTemporario;
 extern int novoLabel;
 extern int numeroParametro;
@@ -159,6 +160,9 @@ function_declaration:
 
 			codeTAC = alocar_memoria(codeTAC);
 			sprintf(codeTAC + strlen(codeTAC), "%s:\n", $2.lexema);
+			
+			funcaoAtual = malloc(strlen($2.lexema) + 1);
+			strcpy(funcaoAtual, $2.lexema);
 		}
 
 		$$ = criar_nodo("function declaration", -1);
@@ -499,8 +503,10 @@ return:
 		retornoFuncao = malloc(strlen(simbolo->tipo) + 1);
 		strcpy(retornoFuncao, simbolo->tipo);
 
-		codeTAC = alocar_memoria(codeTAC);
-		sprintf(codeTAC + strlen(codeTAC), "return $%d\n", $2->temporario);
+		if (strcmp(funcaoAtual, "main") != 0) {
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "return $%d\n", $2->temporario);
+		}
 
 		$$ = criar_nodo("return", -1);
 		add_filho($$, criar_nodo($1.lexema, -1));
@@ -559,7 +565,7 @@ value:
 			sprintf(tamanho, "tamanho_variavel_%s", simbolo->lexema);
 			sprintf(codeTAC + strlen(codeTAC), "mov $%d, %s\n", novoTemporario++, tamanho);
 
-			if (strcmp($1.lexema, "Med") == 0) {
+			if (strcmp($1.lexema, "Med") == 0 || strcmp($1.lexema, "Md") == 0) {
 				sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-2);
 				sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-1);
 				sprintf(codeTAC + strlen(codeTAC), "call Ordenar, 2\n");

@@ -10,6 +10,7 @@ int erroSintatico = 0;
 char *codeTAC;
 char *tableTAC;
 char operacaoTAC;
+char *funcaoAtual;
 
 Nodo *raiz;
 Pilha *pilhaParametros;
@@ -21,6 +22,7 @@ int novoTemporario = 0;
 int novoLabel = 0;
 int numeroParametro = 0;
 
+// funcao para ordenar lista
 void ordenarLista(){
 	codeTAC = alocar_memoria(codeTAC);
 	sprintf(codeTAC + strlen(codeTAC), "\nOrdenar:\nmov $0, #0\nmov $1, #1\n__Ordenar__inicio:\nmov $2, 0\nmov $3, $1\nsub $3, $3, 1\n__Ordenar__loop:\nslt $4, $2, $3\nbrz __Ordenar__fim, $4\nmov $5, $0[$2]\nadd $6, $2, 1\nmov $7, $0[$6]\nsleq $8, $5, $7\nbrnz __Ordenar__ok, $8\nmov $0[$2], $7\nmov $0[$6], $5\njump __Ordenar__inicio\n__Ordenar__ok:\nadd $2, $2, 1\njump __Ordenar__loop\n__Ordenar__fim:\nreturn\n\n");
@@ -32,6 +34,7 @@ void ordenarLista(){
 	ord.escopo = 0;
 }
 
+// funcao para calcular média da lista
 void construirAvg() {
 	codeTAC = alocar_memoria(codeTAC);
 	sprintf(codeTAC + strlen(codeTAC), "\nAvg:\nmov $0, #0\nmov $1, #1\nmov $2, 0\nmov $3, 0\n__Avg__loop:\nslt $4, $3, $1\nbrz __Avg__fim, $4\nmov $5, $0[$3]\nadd $2, $2, $5\nadd $3, $3, 1\njump __Avg__loop\n__Avg__fim:\ninttofl $2, $2\ninttofl $1, $1\ndiv $5, $2, $1\nreturn $5\n\n");
@@ -49,6 +52,7 @@ void construirAvg() {
 	strcpy(simbolo->tipo, "float");
 }
 
+// funcao para calcular mediana da lista
 void construirMed() {
 	codeTAC = alocar_memoria(codeTAC);
 	sprintf(codeTAC + strlen(codeTAC), "\nMed:\nmov $0, #0\nmov $1, #1\nmod $2, $1, 2\nbrz __Med__par, $2\ndiv $3, $1, 2\nmov $4, $0[$3]\nreturn $4\n__Med__par:\ndiv $3, $1, 2\nsub $4, $3, 1\nmov $5, $0[$3]\nmov $6, $0[$4]\nadd $7, $5, $6\ninttofl $7, $7\ndiv $7, $7, 2.0\nreturn $7\n\n");
@@ -66,10 +70,29 @@ void construirMed() {
 	strcpy(simbolo->tipo, "float");
 }
 
+// funcao para calcular moda da lista
+void construirMd() {
+	codeTAC = alocar_memoria(codeTAC);
+	sprintf(codeTAC + strlen(codeTAC), "\nMd:\nmov $0, #0\nmov $1, #1\nmov $2, $0[0]\nmov $3, 1\nmov $4, $2\nmov $5, 1\nmov $6, 1\n__Md__loop:\nslt $7, $6, $1\nbrz __Md__fim__loop, $7\nmov $8, $0[$6]\nadd $6, $6, 1\nseq $7, $8, $2\nbrz __Md__novo, $7\nadd $3, $3, 1\njump __Md__loop\n__Md__novo:\nslt $9, $3, $5\nbrnz __Md__nao__atualiza, $9\nmov $5, $3\nmov $4, $2\n__Md__nao__atualiza:\nmov $2, $8\nmov $3, 1\njump __Md__loop\n__Md__fim__loop:\nslt $9, $3, $5\nbrnz __Md__fim, $9\nmov $5, $3\nmov $4, $2\n__Md__fim:\nreturn $4\n\n");
+	Token moda;
+	moda.lexema = malloc(strlen("Md") + 1);
+	strcpy(moda.lexema, "Md");
+	moda.coluna = 0;
+	moda.linha = 0;
+	moda.escopo = 0;
+
+	int id = criar_simbolo(moda);
+	Simbolo *simbolo = buscar_simbolo_id(id);
+	simbolo->funcao = 1;
+	simbolo->tipo = malloc(strlen("float") + 1);
+	strcpy(simbolo->tipo, "float");
+}
+
 int main() {
 	ordenarLista();
 	construirAvg();
 	construirMed();
+	construirMd();
 
 	yyparse();
 
