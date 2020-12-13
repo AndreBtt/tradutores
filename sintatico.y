@@ -558,6 +558,13 @@ value:
 			char tamanho[90];
 			sprintf(tamanho, "tamanho_variavel_%s", simbolo->lexema);
 			sprintf(codeTAC + strlen(codeTAC), "mov $%d, %s\n", novoTemporario++, tamanho);
+
+			if (strcmp($1.lexema, "Med") == 0) {
+				sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-2);
+				sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-1);
+				sprintf(codeTAC + strlen(codeTAC), "call Ordenar, 2\n");
+			}
+
 			sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-2);
 			sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-1);
 			sprintf(codeTAC + strlen(codeTAC), "call %s, 2\n", $1.lexema);

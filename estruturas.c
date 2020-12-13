@@ -61,7 +61,7 @@ Pilha* pilha_libera(Pilha* p) {
 }
 
 char* alocar_memoria(char *s) {
-	char *ss = (char*) realloc(s, 500 * sizeof(char));
+	char *ss = (char*) realloc(s, 3000 * sizeof(char));
 	if (ss != NULL) {
 		s = ss;
 	}	else {
