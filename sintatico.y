@@ -540,6 +540,38 @@ value:
 		codeTAC = alocar_memoria(codeTAC);
 		sprintf(codeTAC + strlen(codeTAC), "pop $%d\n", $$->temporario);
 	}
+	| T_ListOperation T_LeftParentheses T_Id T_RightParentheses {
+		$$ = criar_nodo("value", -1);
+		
+		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
+		int id = -1;
+		if (simbolo == NULL) {
+			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $3.linha, $3.lexema);
+		} else {
+			id = simbolo->id;
+			if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
+			}
+			
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "mov $%d, &%s\n", novoTemporario++, simbolo->lexema);
+			char tamanho[90];
+			sprintf(tamanho, "tamanho_variavel_%s", simbolo->lexema);
+			sprintf(codeTAC + strlen(codeTAC), "mov $%d, %s\n", novoTemporario++, tamanho);
+			sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-2);
+			sprintf(codeTAC + strlen(codeTAC), "param $%d\n", novoTemporario-1);
+			sprintf(codeTAC + strlen(codeTAC), "call %s, 2\n", $1.lexema);
+
+			$$->temporario = novoTemporario;
+			novoTemporario++;
+
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "pop $%d\n", $$->temporario);
+		}
+
+		simbolo = buscar_simbolo($1.lexema, 0);
+		add_filho($$, criar_nodo($1.lexema, simbolo->id));
+	}
 	| T_Bool {
 		int id = criar_simbolo($1);
 		Simbolo *simbolo = buscar_simbolo_id(id);
@@ -702,24 +734,6 @@ expression:
 	| expression_1 {
 		$$ = $1;
 	}
-	| T_ListOperation T_LeftParentheses T_Id T_RightParentheses {
-		Simbolo *simbolo = buscar_simbolo($3.lexema, $3.escopo);
-		int id = -1;
-		if (simbolo == NULL) {
-			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $3.linha, $3.lexema);
-		} else {
-			id = simbolo->id;
-			if (strcmp(simbolo->tipo, "List<int>") != 0 && strcmp(simbolo->tipo, "List<float>") != 0) {
-				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: função %s aceita apenas variável do tipo List\n", $1.linha, $1.lexema);
-			}
-		}
-
-		$$ = criar_nodo("list expression", -1);
-		add_filho($$, criar_nodo($1.lexema, -1));
-		add_filho($$, criar_nodo($2.lexema, -1));
-		add_filho($$, criar_nodo($3.lexema, id));
-		add_filho($$, criar_nodo($4.lexema, -1));
-	}
 	| T_Id T_assignment T_LeftBrace numbers_list T_RightBrace {
 		$$ = criar_nodo("expression", -1);
 
@@ -729,8 +743,8 @@ expression:
 			sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: variável %s sendo usada porém não foi declarada\n", $1.linha, $1.lexema);
 		} else {
 			id = simbolo->id;
-			if (simbolo->tipo[0] != 'L') {
-				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s deve ser do tipo List\n", $1.linha, $1.lexema);
+			if (simbolo->tipo[0] != 'L' && simbolo->vetorLimite == -1) {
+				sprintf(erroGlobal + strlen(erroGlobal),"Erro na linha %d: a variável %s deve ser do tipo List ou vetor\n", $1.linha, $1.lexema);
 			}
 
 			simbolo->valores = pilha_libera(simbolo->valores);
@@ -738,8 +752,12 @@ expression:
 			PilhaElemento *atribuicoes = 	pilhaAtribuicao->elemento;		
 
 			char tipo[9];
-			if (simbolo->tipo[5] == 'i') strcpy(tipo, "int");
-			else strcpy(tipo, "float");
+			if (simbolo->tipo[0] == 'L') {
+				if (simbolo->tipo[5] == 'i') strcpy(tipo, "int");
+				else strcpy(tipo, "float");
+			} else {
+				strcpy(tipo, simbolo->tipo);
+			}
 
 			int falha = 0;
 			int i = 0;
@@ -770,7 +788,12 @@ expression:
 			sprintf(tableTAC + strlen(tableTAC), "}\n");
 
 			tableTAC = alocar_memoria(tableTAC);
-			sprintf(tableTAC + strlen(tableTAC), "int tamanho_lista_%s = %d\n", $1.lexema, i);
+			sprintf(tableTAC + strlen(tableTAC), "int tamanho_variavel_%s = %d\n", $1.lexema, i);
+
+			$$->temporario = simbolo->temporario;
+
+			codeTAC = alocar_memoria(codeTAC);
+			sprintf(codeTAC + strlen(codeTAC), "mov $%d, &%s\n", simbolo->temporario, $1.lexema);
 		}
 
 		add_filho($$, criar_nodo($1.lexema, id));

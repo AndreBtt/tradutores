@@ -91,6 +91,7 @@ void armazenarTipos(Nodo *raiz, char *tipo) {
 }
 
 void liberar_arvore(Nodo *raiz) {
+	if (raiz == NULL) return;
 	ListaNodo *filhoAtual = raiz->filhos;
 	while (filhoAtual != NULL) {
 		liberar_arvore(filhoAtual->val);

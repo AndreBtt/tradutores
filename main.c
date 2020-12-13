@@ -21,9 +21,32 @@ int novoTemporario = 0;
 int novoLabel = 0;
 int numeroParametro = 0;
 
+void construirAVG() {
+	codeTAC = alocar_memoria(codeTAC);
+	sprintf(codeTAC + strlen(codeTAC), "\nAvg:\nmov $0, #0\nmov $1, #1\nmov $2, 0\nmov $3, 0\n__loop:\nslt $4, $3, $1\nbrz __fim, $4\nmov $5, $0[$3]\nadd $2, $2, $5\nadd $3, $3, 1\njump __loop\n__fim:\ninttofl $2, $2\ninttofl $1, $1\ndiv $5, $2, $1\nreturn $5\n\n");
+	Token avg;
+	avg.lexema = malloc(strlen("Avg") + 1);
+	strcpy(avg.lexema, "Avg");
+	avg.coluna = 0;
+	avg.linha = 0;
+	avg.escopo = 0;
+
+	int id = criar_simbolo(avg);
+	Simbolo *simbolo = buscar_simbolo_id(id);
+	simbolo->funcao = 1;
+	simbolo->tipo = malloc(strlen("float") + 1);
+	strcpy(simbolo->tipo, "float");
+}
+
 int main() {
+	construirAVG();
+
 	yyparse();
+
 	printf("\n");
+	mostrar_tabela();
+	printf("\n");
+
 	if (erroSintatico == 0 && busca_main() == 0) sprintf(erroGlobal + strlen(erroGlobal),"Função main não foi declarada\n");
 	if (erroGlobal[0]) {
 		printf("%s", erroGlobal);
@@ -37,11 +60,10 @@ int main() {
 		fclose(tac);
 
 		mostrar_arvore(raiz, 1);
-		liberar_arvore(raiz);
-		mostrar_tabela();
-		liberar_tabela();
 	}
 
+	liberar_arvore(raiz);
+	liberar_tabela();
 	pilha_libera(pilhaParametros);
 	pilha_libera(pilhaArgumentos);
 	pilha_libera(pilhaValores);

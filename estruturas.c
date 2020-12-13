@@ -26,7 +26,6 @@ char* buscar_token(char *s) {
 	if(strcmp(s, "==") == 0) return "Equal operation";
 	if(strcmp(s, "List") == 0) return "List";
 	if(strcmp(s, "<int>") == 0 || strcmp(s, "<float>") == 0) return "List type";
-	if(strcmp(s, "Avg") == 0) return "List operation";
 	return "Identifier";
 }
 
