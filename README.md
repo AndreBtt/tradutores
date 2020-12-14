@@ -12,6 +12,9 @@ Todos os testes estão dentro da pasta *testes* dividos por cada fase da compila
 | lexico  | Análise léxica  |
 | sintatico  | Análise Sintática  |
 | semantio  | Análise Semântica  |
+| primitiva  | Código de três endereços  |
+
+A pasta primitiva contém exemplos de como usar a primitiva implementada.
 
 Arquivos de testes que possuem entradas corretas estão nomeados com:
 * s1.c
