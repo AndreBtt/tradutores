@@ -12,15 +12,9 @@ int f(int a, float b) {
 int main() {
   float b;
   int a;
+  a = 9;
+  b = 51.12;
   f(a, b);
-
-  List <int> lista1;
-  List <int> lista2;
-  
-  Avg(lista1);
-  Med(lista2);
-  Sd(lista2);
-  Md(lista1);
 
   return 1;
 }

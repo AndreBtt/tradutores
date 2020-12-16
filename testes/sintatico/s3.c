@@ -1,12 +1,12 @@
-int main(int args) {
+int main() {
   List<int> a;
+  a = {1};
 
   Avg(a);
 
   int k;
-  float x;
-  if (a == 5) {
-    int a;
+  if (k == 5) {
+    int c;
   }
 
   return 0;
