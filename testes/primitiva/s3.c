@@ -1,7 +1,7 @@
 float imprimir(float v) {
   writeFloat v;
 
-  return 9.0;
+  return v;
 }
 
 int main() {
